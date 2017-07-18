@@ -1,0 +1,136 @@
+#window{
+	display: none;
+	z-index: 100;
+	position: fixed;
+	width: 260px;
+	box-shadow: 0px 0px 0px 10px rgba(0,0,0,0.5);
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	margin: auto;
+	background: #FFF;
+	border-radius: 10px;
+	overflow: hidden;
+	text-align: center;
+	padding: 20px 20px;
+}
+#w_Header{
+	position: absolute;
+	top: 0;
+	left: 0;
+	font-weight: bold;
+	width: 260px;
+	height: 20px;
+	padding: 0 10px;
+	background: gray;
+	text-align: left;
+}
+#w_TurnOFF{
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 20px;
+	height: 20px;
+	background: url('../images/ix.png');
+	background-size: cover;
+	cursor: pointer;
+}
+#w_DropUpload{
+	display: none;
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	background-image: url('../images/upload.png');
+	background-size: 100px;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+#window input[type="file"]{
+	background: #ECECEC;
+}
+#w_DeleteIkon{
+	display: block;
+    margin: 10px auto 0;
+}
+#w_DeleteIkonButton, #w_DeleteFolderButton{
+    margin-top: 5px;
+}
+
+
+#windowBgBlock{
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	height: 0;
+	width: 100%;
+	opacity: 0;
+	background: #000;
+	z-index: 99;
+}
+												#windowBgBlock.test,
+#windowBgBlock.addIcon,
+#windowBgBlock.editIcon,
+#windowBgBlock.uploadImage,
+#windowBgBlock.editBg,
+#windowBgBlock.addFolder,
+#windowBgBlock.editFolder,
+#windowBgBlock.definitelyDeleteFolder{
+	transition: opacity 1s, height 0s;
+	height: 100%;
+	opacity: .2;
+	cursor: pointer;
+}
+												#window.test,
+#window.addIcon,
+#window.editIcon,
+#window.uploadImage,
+#window.editBg,
+#window.addFolder,
+#window.editFolder,
+#window.definitelyDeleteFolder{
+	display: block;
+}
+
+
+#window.editIcon #w_AddIcon,
+#window.editIcon #w_Folder{
+	display: none;
+}
+#window.addIcon #w_Upload,
+#window.addIcon #w_ChangeIcon,
+#window.addIcon #w_DeleteIkon,
+#window.addIcon #w_Folder{
+	display: none;
+}
+#window.uploadImage #w_Icon,
+#window.uploadImage #w_Folder{
+	display: none;
+}
+#window.editBg #w_Icon,
+#window.editBg #w_Folder{
+	display: none;
+}
+
+#window.addFolder #w_Upload,
+#window.addFolder #w_Icon,
+#window.addFolder #w_ChangeFolder,
+#window.addFolder #w_DeleteFolder{
+	display: none;
+}
+
+#window.editFolder #w_Upload,
+#window.editFolder #w_Icon,
+#window.editFolder #w_AddFolder,
+#window.editFolder #w_DeleteFolder{
+	display: none;
+}
+
+#window.definitelyDeleteFolder #w_Upload,
+#window.definitelyDeleteFolder #w_Icon,
+#window.definitelyDeleteFolder #w_AddFolder,
+#window.definitelyDeleteFolder #w_ChangeFolder{
+	display: none;
+}

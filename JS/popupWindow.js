@@ -1,0 +1,179 @@
+popupWindow = {
+	turnON: function(what){
+		var iconID = icons.selected;
+		var slectedFolder = folders.selected;
+		icons.selected = null;
+		folders.selected = null;
+
+		document.getElementById("window").setAttribute("class", what);
+		document.getElementById("windowBgBlock").setAttribute("class", what);
+		document.getElementById("windowBgBlock").addEventListener('click', popupWindow.turnOFF);
+		document.getElementById("w_TurnOFF").addEventListener('click', popupWindow.turnOFF);
+		document.getElementById("w_DropUpload").addEventListener('dragover', function(e){ e.preventDefault(); });
+		document.getElementById("w_DropUpload").addEventListener('dragleave', function(e){ e.preventDefault();  this.style.display = "none"; });
+
+		switch(what){
+
+			case "addIcon": {
+				document.getElementById("w_Header").innerHTML = "Dodawanie ikony:";
+				document.getElementById("w_AddIconAddress").focus();
+				document.getElementById("w_AddIconAddress").addEventListener('keyup', function(e){
+					if(e.keyCode == 13)		// jeśli kliknięto Enter
+						icons.save.icon(tools.generateID(), this.value);
+				});
+				document.getElementById("w_AddIconAddressOK").addEventListener('click', function(e){
+					icons.save.icon(tools.generateID(), document.getElementById("w_AddIconAddress").value);
+				});
+			}
+			break;
+
+			case "editIcon": {
+				document.getElementById("w_Header").innerHTML = "Edycja ikony:";
+				document.getElementById("w_ChangeIconAddress").value = icons.list[iconID].img.alt;
+				document.getElementById("w_UploadFILE").addEventListener('change', function(e){
+					icons.save.imageFILE(iconID, e.target.files[0]);
+				});
+				document.getElementById("w_UploadURL").addEventListener('keyup', function(e){
+					if(e.keyCode == 13)
+						icons.save.imageURL(iconID, e.target.value);
+				});
+				document.getElementById("w_UploadURLOK").addEventListener('click', function(e){
+					icons.save.imageURL(iconID, document.getElementById("w_UploadURL").value);
+				});
+				document.getElementById("window").addEventListener('dragenter', function(e){
+					e.preventDefault();
+					document.getElementById("w_DropUpload").style.display = "block";
+				});
+				document.getElementById("w_DropUpload").addEventListener('drop', function(e){
+					e.preventDefault();
+					if(e.dataTransfer.files.length != 0)			icons.save.imageFILE(iconID, e.dataTransfer.files[0]);
+					if(e.dataTransfer.getData("URL"))			icons.save.imageURL(iconID, e.dataTransfer.getData("URL"));
+					document.getElementById("w_DropUpload").style.display = "none";
+				});
+				document.getElementById("w_ChangeIconAddress").addEventListener('keyup', function(e){
+					if(e.keyCode == 13)
+						icons.save.address(iconID, this.value);
+				});
+				document.getElementById("w_ChangeIconAddressOK").addEventListener('click', function(e){
+					icons.save.address(iconID, document.getElementById("w_ChangeIconAddress").value);
+				});
+				document.getElementById("w_DeleteIkonButton").addEventListener('click', function(){
+					icons.deleteIcon(iconID);
+					popupWindow.turnOFF();
+				});
+			}
+			break;
+
+			case "uploadImage": {
+				document.getElementById("w_Header").innerHTML = "Wgraj obrazek";
+				document.getElementById("w_UploadFILE").addEventListener('change', function(e){
+					icons.save.imageFILE(iconID, e.target.files[0]);
+				});
+				document.getElementById("w_UploadURL").addEventListener('keyup', function(e){
+					if(e.keyCode == 13)
+						icons.save.imageURL(iconID, e.target.value);
+				});
+				document.getElementById("w_UploadURLOK").addEventListener('click', function(e){
+						icons.save.imageURL(iconID, document.getElementById("w_UploadURL").value);
+				});
+				document.getElementById("window").addEventListener('dragenter', function(e){
+					e.preventDefault();
+					document.getElementById("w_DropUpload").style.display = "block";
+				});
+				document.getElementById("w_DropUpload").addEventListener('drop', function(e){
+					e.preventDefault();
+					if(e.dataTransfer.files.length != 0)			icons.save.imageFILE(iconID, e.dataTransfer.files[0]);
+					if(e.dataTransfer.getData("URL"))			icons.save.imageURL(iconID, e.dataTransfer.getData("URL"));
+					document.getElementById("w_DropUpload").style.display = "none";
+				});
+			}
+			break;
+
+			case "editBg": {
+				document.getElementById("w_Header").innerHTML = "Edycja tła:";
+				document.getElementById("w_UploadFILE").addEventListener('change', function(e){
+					icons.save.bgFILE(e.target.files[0]);
+				});
+				document.getElementById("w_UploadURL").addEventListener('keyup', function(e){
+					if(e.keyCode == 13)
+						icons.save.bgURL(e.target.value);
+				});
+				document.getElementById("w_UploadURLOK").addEventListener('click', function(e){
+					icons.save.bgURL(document.getElementById("w_UploadURL").value);
+				});
+				document.getElementById("window").addEventListener('dragenter', function(e){
+					e.preventDefault();
+					document.getElementById("w_DropUpload").style.display = "block";
+				});
+				document.getElementById("w_DropUpload").addEventListener('drop', function(e){
+					e.preventDefault();
+					if(e.dataTransfer.files.length != 0)			icons.save.bgFILE(e.dataTransfer.files[0]);
+					if(e.dataTransfer.getData("URL"))			icons.save.bgURL(e.dataTransfer.getData("URL"));
+					document.getElementById("w_DropUpload").style.display = "none";
+				});
+			}
+			break;
+
+			case "addFolder": {
+				document.getElementById("w_Header").innerHTML = "Dodawanie folderu:";
+				document.getElementById("w_AddFolderName").focus();
+				document.getElementById("w_AddFolderName").addEventListener('keyup', function(e){
+					if(e.keyCode == 13){		// jeśli kliknięto Enter
+						folders.save.newFolder(this.value);
+						popupWindow.turnOFF();
+					}
+				});
+				document.getElementById("w_AddFolderNameOK").addEventListener('click', function(e){
+					folders.save.newFolder(document.getElementById("w_AddFolderName").value);
+					popupWindow.turnOFF();
+				});
+			}
+			break;
+
+			case "editFolder": {
+				document.getElementById("w_Header").innerHTML = "Edycja folderu:";
+				document.getElementById("w_ChangeFolderName").value = slectedFolder.id.replace("folder_", '');
+				document.getElementById("w_ChangeFolderName").focus();
+				document.getElementById("w_ChangeFolderName").addEventListener('keyup', function(e){
+					if(e.keyCode == 13)		// jeśli kliknięto Enter
+						folders.renameFolder(slectedFolder, this.value);
+				});
+				document.getElementById("w_ChangeFolderNameOK").addEventListener('click', function(e){
+					folders.renameFolder(slectedFolder, document.getElementById("w_ChangeFolderName").value);
+				});
+				document.getElementById("w_DeleteFolderButton").addEventListener('click', function(){
+					folders.selected = slectedFolder;
+					popupWindow.turnON("definitelyDeleteFolder");
+				});
+			}
+			break;
+
+			case "definitelyDeleteFolder": {
+				document.getElementById("w_Header").innerHTML = "Usuwanie folderu:";
+				document.getElementById("w_DefinitelyDelFolder").focus();
+				document.getElementById("windowBgBlock").addEventListener('click', function(){ slectedFolder.removeAttribute("style"); });
+				document.getElementById("w_TurnOFF").addEventListener('click', function(){ slectedFolder.removeAttribute("style"); });
+				document.getElementById("w_DoNotDelFolder").addEventListener('click', function(){ slectedFolder.removeAttribute("style"); popupWindow.turnOFF(); });
+				document.getElementById("w_DefinitelyDelFolder").addEventListener('click', function(){ folders.deleteFolder(slectedFolder); popupWindow.turnOFF(); });
+			}
+			break;
+		}
+	},
+	turnOFF: function(){
+		/* zastąpienie elementu klonem usuwa wszystkie event listenery elementu i jego dzieci */
+		var window = document.getElementById('window');
+			windowClone = window.cloneNode(true);
+		window.parentNode.replaceChild(windowClone, window);
+		window.remove();
+
+		window = windowClone;
+		window.removeAttribute("class");
+		document.getElementById("windowBgBlock").removeAttribute("class");
+		document.getElementById("w_UploadURL").value = '';
+		document.getElementById("w_UploadFILE").value = '';
+		document.getElementById("w_AddIconAddress").value = '';
+		document.getElementById("w_ChangeIconAddress").value = '';
+		document.getElementById("w_AddFolderName").value = '';
+		document.getElementById("w_ChangeFolderName").value = '';
+	}
+}
