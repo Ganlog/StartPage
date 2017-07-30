@@ -9,7 +9,7 @@ icons = {
 		order: function(){
 			ajax.onload = function(){
 				if(ajax.responseData == "reload"){
-					display.info("Folder zostanie ponownie załadowany");
+					display.info("Folder will be reloaded");
 					icons.load.folder(icons.activeFolder);
 				}
 			}
@@ -94,18 +94,19 @@ icons = {
 			ajax.onload = function(){
 				icons.activeFolder = folder;
 				if(ajax.responseData){
-					// resetowanie kluczowych zmiennych
+					// reset essential values
 						document.getElementById("iconContainer").innerHTML = '';
 						icons.list = {}
 						icons.order = [];
 						icons.count = 0;
 
-					//wyświetlanie zawartości folderu
+					// show folder content
 						var ajaxResp = ajax.responseData;
 						for(i = 0; i < ajaxResp.count; i++){
 							icons.add(ajaxResp.ID[i], ajaxResp.URL[i], ajaxResp.image[i]);
 						}
-					// pkazanie plusa w folderze jesli nei jest koszem
+
+					// show plus-icon if current folder is not bin
 					if(icons.activeFolder != "BIN")
 							icons.iconPlus.show();
 					icons.arrange();
@@ -139,8 +140,8 @@ icons = {
 		},
 	},
 	moveIconToFolder: function(ID, folder){
-		delete icons.list[ID];						// usuwanie wybranej ikony z listy ikon
-		icons.order.splice(icons.order.indexOf(ID), 1);	// usuwanie wybranej ikony z listy kolejności
+		delete icons.list[ID];						// delete icon from list of icons
+		icons.order.splice(icons.order.indexOf(ID), 1);	// delete icon from order list
 		icons.count--;
 		icons.arrange();
 		ajax.onload = function(){
@@ -162,8 +163,8 @@ icons = {
 	deleteIcon: function(ID){
 		if(icons.activeFolder.toUpperCase() == "BIN"){
 
-			delete icons.list[ID];						// usuwanie wybranej ikony z listy ikon
-			icons.order.splice(icons.order.indexOf(ID), 1);	// usuwanie wybranej ikony z listy kolejności
+			delete icons.list[ID];						// delete icon from list of icons
+			icons.order.splice(icons.order.indexOf(ID), 1);	// delete icon from order list
 			icons.count--;
 
 			icons.arrange();
@@ -184,9 +185,9 @@ icons = {
 			containerWidth = document.getElementById("iconContainer").offsetWidth,
 			size = this.size + margin,
 			iconCount = (document.getElementById("iconPlus")) ? this.count+1 : this.count,
-			countXtest = Math.floor(containerWidth / size),		// test jest potrzebny bo jesli okno bedzie zbyt wąskie ilość kolumn może byc równa 0
-			countX = (countXtest > 0) ? countXtest : 1,			// ilość kolumn
-			countY = Math.ceil(iconCount / countX),				// ilość rzędów
+			countXtest = Math.floor(containerWidth / size),		// number of columns of icons (must be tested to avoid situation with 0 columns)
+			countX = (countXtest > 0) ? countXtest : 1,			// number of columns must be at least 1
+			countY = Math.ceil(iconCount / countX),				// number of rows
 			positionX, positionY;
 
 		nr = 0;
@@ -216,13 +217,13 @@ icons = {
 		this.count++;
 	},
 	iconObject: function(ID, URL, image){
-		/* tworzenie widocznej ikony */
+		// creating visible icon
 			var div = document.createElement("div");
 				div.id = ID;
 				div.setAttribute("class", "icon");
 				document.getElementById("iconContainer").appendChild(div);
 
-				/* tworzenie zaslony i jej eventListenerów*/
+				// creating editBlockade and its eventListener
 						var block = document.createElement("div");
 							block.setAttribute("class", "editBlockade");
 							block.addEventListener("click", function(e){
@@ -231,7 +232,7 @@ icons = {
 							});
 							div.appendChild(block);
 
-				/* tworzenie widocznego elementu a */
+				// creating 'a' element
 						var a = document.createElement("a");
 							a.setAttribute("class", "URL");
 							if((URL.substring(0,4) != "http") && (URL.substring(0,11) != "javascript:"))
@@ -239,7 +240,7 @@ icons = {
 							else  a.href = URL;
 							div.appendChild(a);
 
-				/* tworzenie widocznego elementu img jeśli podano obrazek */
+				// creating img element if image is set
 						var img = document.createElement("img");
 							if(image){
 								img.src = "images/icons/" + image;
@@ -248,7 +249,7 @@ icons = {
 							img.setAttribute("class", "image");
 							div.appendChild(img);
 
-		/* ułatwienie dostępu */
+		// ease of acces to variables
 				this.iconDIV = div;
 				this.style = div.style;
 				this.id = div.id;
@@ -257,7 +258,7 @@ icons = {
 				this.a = a;
 	},
 	sizeListener: (function(){
-		/* pierwsze ustawienie ikon (trzeba dac troche czasu na ukończenie tworzenia klasy icons)*/
+		// first size set and arrangement (50 miliseconds delay is necessary to give time to finish creation of "icons" class)
 			var oldSize;
 			setTimeout(function(){
 				tools.changeCSS(".icon", "width", icons.size+"px");
@@ -267,7 +268,7 @@ icons = {
 				oldSize = icons.size;
 			}, 50);
 
-		/* cykliczne ustawianie ikon jesli wielkosc sie zmienila */
+		// set icon size ang arrange them every time size is changed
 			setInterval(function(){
 				if(icons.size != oldSize){
 					tools.changeCSS(".icon", "width", icons.size+"px");
@@ -335,11 +336,11 @@ icons = {
 
 /* drag and drop */
 document.getElementById("iconContainer").addEventListener('dragstart', function(e){
-	if(e.target.className.indexOf("URL") != -1){ 	//jeśli złapany jest element klasy "URL"
+	if(e.target.className.indexOf("URL") != -1){ 	// if dragged element is of class "URL"
 
 		var selected = icons.list[e.target.parentNode.id];
 		icons.selected = selected.id;
-		/* ustawienie śledzącego "duszka" i ukrycie DIV'a*/
+		// setting drag image and hiding actual dragged div
 			e.dataTransfer.setDragImage(selected.img, icons.size/2, icons.size/2);
 			setTimeout(function(){
 				selected.style.display = "none";
@@ -355,15 +356,15 @@ document.getElementById("iconContainer").addEventListener('dragstart', function(
 document.getElementById("iconContainer").addEventListener('dragenter', function(e){
 	e.preventDefault();
 	if(icons.selected){
-		/* jesli 'selected' najechał na obiekt klasy icon - ok
-			jesli na cos innego, lub na samego siebie zakoncz funkcje */
+		// if 'selected' hovered object of class 'icon' - ok
+		// if something else or itself end function
 				var hovered = null;
 				if(e.target.className.indexOf("URL") != -1)
 					hovered = icons.list[e.target.parentNode.id].id;
 				if(hovered == null) return;
 				if(icons.order.indexOf(hovered) == icons.order.indexOf(icons.selected)) return;
 
-		/* przesuwanie w prawo od luki*/
+		// moving to right from empty spot
 				if(icons.order.indexOf(hovered) > icons.order.indexOf(icons.selected)){
 					var i = icons.order.indexOf(icons.selected);
 					while(i < icons.order.indexOf(hovered)){
@@ -372,7 +373,7 @@ document.getElementById("iconContainer").addEventListener('dragenter', function(
 					}
 				}
 
-		/* przesuwanie w lewo od luki*/
+		// moving to left from empty spot
 				else{
 					var i = icons.order.indexOf(icons.selected);
 					while(i > icons.order.indexOf(hovered)){
@@ -397,7 +398,7 @@ document.getElementById("iconContainer").addEventListener('drop', function(e){
 	if(icons.selected){
 		icons.save.order();
 	}
-	if((!icons.selected) && (!folders.selected)){ //jeśli zostanie wrzucone coś z poza strony -> otwiera sie okno z dodawaniem strony
+	if((!icons.selected) && (!folders.selected)){ // if something is dropped and its not icon or folder -> window to add icon appears
 		popupWindow.turnON("addIcon");
 		document.getElementById("w_AddIconAddress").value = e.dataTransfer.getData("TEXT");
 	}
@@ -407,7 +408,6 @@ document.getElementById("iconContainer").addEventListener('drop', function(e){
 document.getElementById("iconContainer").addEventListener('dragend', function(e){
 	e.preventDefault();
 	if(icons.selected){
-		/* odstawienie zlapanej ikony */
 		if(icons.list[icons.selected])
 			icons.list[icons.selected].iconDIV.removeAttribute("style");
 		icons.arrange();

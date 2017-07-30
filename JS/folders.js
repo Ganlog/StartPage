@@ -20,11 +20,11 @@ folders = {
 	load: function(){
 		ajax.onload = function(){
 			if(ajax.responseData){
-				// resetowanie kluczowych zmiennych
+				// reset essential values
 					document.getElementById("mainFolders").innerHTML = '';
 					folders.folderPlus.show();
 
-				//wyświetlanie folderów
+				// show folders
 					var ajaxResp = ajax.responseData;
 					for(i = 0; i < ajaxResp.length; i++)
 						folders.add(ajaxResp[i]);
@@ -57,12 +57,12 @@ folders = {
 			var foldersList = document.getElementById("mainFolders").children;
 
 			var newOrder = [];
-			for(i=0; i < foldersList.length-1; i++) 	// -1 bo jeszcze jest 'folderPlus'
+			for(i=0; i < foldersList.length-1; i++) 	// -1 because 'folderPlus' is ignored
 				newOrder.push(foldersList[i].id.replace("folder_", ''));
 
 			ajax.onload = function(){
 				if(ajax.responseData == "reload"){
-					display.info("Lista folderów zostanie ponownie załadowana");
+					display.info("List of folders will be reloaded");
 					folders.load();
 				}
 			}
@@ -75,12 +75,12 @@ folders = {
 		var oldName = folderDIV.id.replace("folder_", '');
 		newName = folders.displayFormat(newName);
 		if(oldName.toUpperCase() == "START"){
-			display.info("Nie można zmienić nazwy folderu 'Start'");
+			display.info("You can't change name of folder 'Start'");
 		}
 		else{
 			ajax.onload = function(){
 				if(ajax.responseData == "reload"){
-					display.info("Lista folderów zostanie ponownie załadowana");
+					display.info("List of folders will be reloaded");
 					folders.load();
 				}
 				else if(ajax.responseData == "alreadyExist")
@@ -102,7 +102,7 @@ folders = {
 	deleteFolder: function(folderDIV){
 		if(folderDIV.id.replace("folder_", '').toUpperCase() == "START"){
 			folderDIV.removeAttribute("style");
-			display.info("Nie można usunąc folderu 'Start'");
+			display.info("You can't change name of folder 'Start'");
 		}
 		else{
 			ajax.onload = function(){
@@ -117,15 +117,15 @@ folders = {
 		}
 	},
 	displayFormat: function(string){
-		var firstLetter = [0];	// tablica przechowująca indeksy pierwszych lister słów (zerowa jest pierwsza)
+		var firstLetter = [0];	// array will store indexes of first letters of words
 
 		for(var i=0; i<string.length; i++)
 				if (string[i] == " ")
 					firstLetter.push(i+1);
 
-		string = string.toLowerCase();			//najpierw wszystkie litery zamień na małe
+		string = string.toLowerCase();			// first change whole text to lowercase
 		var bigLetter;
-		for(var i=0; i<firstLetter.length; i++){	//potem zamień wszystkie pierwsze litery słów na duże
+		for(var i=0; i<firstLetter.length; i++){	// then using stored indexes change first letters to uppercase
 			bigLetter = string.charAt(firstLetter[i]).toUpperCase();
 			string = string.substring(0,firstLetter[i]) + bigLetter + string.substring(firstLetter[i]+1);
 		}
@@ -252,7 +252,7 @@ document.getElementById("folder_BIN").addEventListener('drop', function(e){
 
 document.getElementById("mainFolders").addEventListener('drop', function(e){
 	e.preventDefault();
-	if((icons.selected) && (e.target.id.indexOf("folder_") != -1)){	// jesli ikona została rzucona na folder
+	if((icons.selected) && (e.target.id.indexOf("folder_") != -1)){	// is icon is dropped on folder
 		var folder = e.target.id.replace("folder_", '');
 		icons.moveIconToFolder(icons.selected, folder);
 	}

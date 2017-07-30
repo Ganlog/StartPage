@@ -29,7 +29,7 @@ tools = {
 		var date = new Date();
 		var year = String(date.getFullYear()).substring(2, 4);
 		var month = date.getMonth()
-			month = (month+1 > 9) ? month+1 : "0"+(month+1); // Styczeń jest 0
+			month = (month+1 > 9) ? month+1 : "0"+(month+1); // January is 0
 		var day = date.getDate();
 			day = (day > 9) ? day : "0"+day;
 		var hours = date.getHours();
@@ -42,7 +42,7 @@ tools = {
 			miliseconds = (miliseconds > 99) ? miliseconds : (miliseconds > 9) ? "0"+miliseconds : "00"+miliseconds;
 
 		var newID = year+''+month+''+day+''+hours+''+minutes+''+seconds+''+miliseconds;
-		while(document.getElementById(newID))	//dopóki istnieje element o takim ID zwiększ je o 1
+		while(document.getElementById(newID))	// while element with this ID exists, increase it by 1
 			newID = parseInt(newID)+1
 		return newID;
 	},

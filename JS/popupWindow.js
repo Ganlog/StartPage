@@ -18,7 +18,7 @@ popupWindow = {
 				document.getElementById("w_Header").innerHTML = "Dodawanie ikony:";
 				document.getElementById("w_AddIconAddress").focus();
 				document.getElementById("w_AddIconAddress").addEventListener('keyup', function(e){
-					if(e.keyCode == 13)		// jeśli kliknięto Enter
+					if(e.keyCode == 13)		// Enter
 						icons.save.icon(tools.generateID(), this.value);
 				});
 				document.getElementById("w_AddIconAddressOK").addEventListener('click', function(e){
@@ -118,7 +118,7 @@ popupWindow = {
 				document.getElementById("w_Header").innerHTML = "Dodawanie folderu:";
 				document.getElementById("w_AddFolderName").focus();
 				document.getElementById("w_AddFolderName").addEventListener('keyup', function(e){
-					if(e.keyCode == 13){		// jeśli kliknięto Enter
+					if(e.keyCode == 13){		// Enter
 						folders.save.newFolder(this.value);
 						popupWindow.turnOFF();
 					}
@@ -135,7 +135,7 @@ popupWindow = {
 				document.getElementById("w_ChangeFolderName").value = slectedFolder.id.replace("folder_", '');
 				document.getElementById("w_ChangeFolderName").focus();
 				document.getElementById("w_ChangeFolderName").addEventListener('keyup', function(e){
-					if(e.keyCode == 13)		// jeśli kliknięto Enter
+					if(e.keyCode == 13)		// Enter
 						folders.renameFolder(slectedFolder, this.value);
 				});
 				document.getElementById("w_ChangeFolderNameOK").addEventListener('click', function(e){
@@ -160,7 +160,7 @@ popupWindow = {
 		}
 	},
 	turnOFF: function(){
-		/* zastąpienie elementu klonem usuwa wszystkie event listenery elementu i jego dzieci */
+		// replace of element with it's clone removes it's and it child's event listeners
 		var window = document.getElementById('window');
 			windowClone = window.cloneNode(true);
 		window.parentNode.replaceChild(windowClone, window);

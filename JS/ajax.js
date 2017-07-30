@@ -7,24 +7,21 @@ ajax = {
 	GET: function(action, data){
 		ajax.connect("GET", action, data);
 	},
-	connect: function(method, action, data=''){
+	connect: function(method, action, data='_'){
 		this.connectionsCount++;
 		display.loading();
 
-		var onloadFunction = this.onload;	//zapisuje funkcje, która zostanie wykonana po zakończeniu połączenia
+		var onloadFunction = this.onload;	// save onload function to execute it after receiving response
 		this.onload = null;
 
 		var xmlhttp = new XMLHttpRequest();
 		xmlhttp.onload = function(){
 			if (xmlhttp.status == 200){
-				var response;
-				if(xmlhttp.responseText.indexOf("<!--") != -1)	response = xmlhttp.responseText.substring(0, xmlhttp.responseText.indexOf("<!--"));	// Zabezpieczenie przed automatycznie dodawanym komentarzem na serwerze
-				else response = xmlhttp.responseText;
-
+				var response = xmlhttp.responseText;
 				var correctResponse = true;
 				try{ response = JSON.parse(response) }
 				catch (e){
-					display.error("Niepoprawna odpowiedź serwera (treść poniżej):<br>"+xmlhttp.responseText);
+					display.error("Wrong server response (content below):<br>"+xmlhttp.responseText);
 					correctResponse = false;
 				}
 
@@ -38,20 +35,20 @@ ajax = {
 				}
 			}
 			else{
-				display.error("Problem z połączeniem poprzez ajax:");
+				display.error("Problem with AJAX connection:");
 				display.error("Status: "+xmlhttp.status);
 			}
 			ajax.connectionsCount--;
-			if(ajax.connectionsCount == 0)		// wykonuje sie po zakończeniu ostatniego polaczenia
+			if(ajax.connectionsCount == 0)		// executes after the end of last connection
 				display.loadingEnd();
 		}
 
 		if(method == "POST"){
-			xmlhttp.open("POST", "ajax/ajaxPOST.php?"+action, true);
+			xmlhttp.open("POST", "AJAX/ajaxPOST.php?"+action, true);
 			xmlhttp.send(data);
 		}
 		else if(method == "GET"){
-			xmlhttp.open("GET", "ajax/ajaxGET.php?"+action+"="+data, true);
+			xmlhttp.open("GET", "AJAX/ajaxGET.php?"+action+"="+data, true);
 			xmlhttp.send();
 		}
 	},

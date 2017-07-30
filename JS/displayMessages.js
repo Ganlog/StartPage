@@ -35,7 +35,7 @@ display = {
 					div.id = "loading";
 					div.classList.add("message");
 				document.getElementById("messages").appendChild(div);
-				div.innerHTML = "Trwa lączenie z bazą danych...";
+				div.innerHTML = "Connecting to server...";
 				this.changeCursor("progress");
 				this.arrange();
 			}

@@ -91,7 +91,7 @@
 <script>
 	window.onload = function(){
 		icons.load.size();
-		icons.load.folder(localStorage['lastActiveFolder'] || "Start"); // tutaj start zamienić na cos z localstorage  i zamienic wszystkie momentarze na angielski
+		icons.load.folder(localStorage['lastActiveFolder'] || "Start");
 		folders.load();
 	}
 </script>
@@ -104,5 +104,3 @@
 <script src="JS/folders.js"></script>
 <script src="JS/settings.js"></script>
 <script src="JS/popupWindow.js"></script>
-
-<script src = "JS/addCleaner.js"></script>
