@@ -13,6 +13,18 @@
 		public $URL = array();
 		public $image = array();
 	}
+	$icons = new Icons();
+
+	function respond(){
+		global $response;
+		print_r(json_encode($response));
+		exit;
+	}
+
+
+
+
+
 
 
 	include "logDB.php";
@@ -20,126 +32,221 @@
 	if ($db->connect_error) {
 		$response->error = "Database connection error. <br>";
 		$response->error .= "Error number ".$db->connect_errno.": ".mb_convert_encoding($db->connect_error, 'utf-8');
+		respond();
 	}
-	else{
-		$db->query("
-			CREATE TABLE IF NOT EXISTS icons (
-			  ID bigint(15) NOT NULL,
-			  URL varchar(500) NOT NULL,
-			  image varchar(20) NOT NULL
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-		");
-		$db->query("
-			CREATE TABLE IF NOT EXISTS iconsorder (
-			  orderID int(10) NOT NULL,
-			  ID bigint(15) NOT NULL,
-			  folder varchar(100) NOT NULL
-			) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
-		");
-		$db->query("
-			CREATE TABLE IF NOT EXISTS settings (
-			  size int(10) NOT NULL,
-			  other varchar(100) NOT NULL
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-		");
-		$db->query("
-			CREATE TABLE IF NOT EXISTS folders (
-			  orderID int(10) NOT NULL,
-			  name varchar(100) NOT NULL
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-		");
+	session_start();
 
 
 
 
 
-		if(isset($_REQUEST['loadSize'])){
-			if($db->query("SELECT size FROM settings")->fetch_object())		// if size is saved in database, get it
-				$size = $db->query("SELECT size FROM settings")->fetch_object()->size;
-			else{		// otherwise set value and save it to database
-				$size = 100;
-				$db->query("INSERT INTO settings SET size = 100");
-			}
-			$response->responseData = $size;
-		}
-
-		if(isset($_REQUEST['loadFolderContent'])){
-			$folder = adaptToQuery($db, $_REQUEST['loadFolderContent']);
-			do{
-				$iconsInDB = selectColumnToArray($db, "iconsorder", "ID", "folder", $folder);		// writes to array elements from column "ID" of "iconsorder" table, for selected value in column "folder"
-			}while(count(array_unique($iconsInDB))<count($iconsInDB));	// repeat while there are no duplicates (they apear sometimes for a short time while changing order)
-
-			$results = $db->query("
-				SELECT icons.ID, icons.URL, icons.image
-				FROM iconsorder
-				INNER JOIN icons ON icons.ID = iconsorder.ID
-				WHERE folder = '".$folder."'
-				ORDER BY iconsorder.orderID ASC
-			");
-
-			$icons = new Icons();
-			while($row = $results->fetch_object()){
-				array_push($icons->ID, $row->ID);
-				array_push($icons->URL, $row->URL);
-				array_push($icons->image, $row->image);
-			}
-			$icons->count = mysqli_num_rows($results);
-
-			$response->responseData = $icons;
-			$response->log = "Loaded content of folder: '".$folder."'";
-			if($folder == "BIN")
-				$response->log = "Loaded content of bin";
-		}
 
 
-		if(isset($_REQUEST['loadFolders'])){
-			$foldersList = array();
-			$results = $db->query("SELECT name FROM folders ORDER BY orderID ASC");
-			$foldersCount = mysqli_num_rows($results);
-
-			if($foldersCount){	// if some folders exist, write their names to array 'foldersList'
-				while($row = $results->fetch_object())
-					array_push($foldersList, $row->name);
-			}
-			else{	// if no folder exists, add folder "Start"
-				$db->query("INSERT INTO folders SET orderID = 0, name = 'Start'");
-				array_push($foldersList, 'start');
-			}
-
-			$response->log = "Loaded list of folders";
-			$response->responseData = $foldersList;
-		}
 
 
-		if(isset($_REQUEST['loadImage'])){
-			$ID = adaptToQuery($db, $_REQUEST['loadImage']);
-			$image = $db->query("SELECT image FROM icons WHERE ID = '".$ID."'")->fetch_object()->image;
-			$response->responseData = $image;
-		}
+	$db->query("
+		CREATE TABLE IF NOT EXISTS icons (
+		  ID bigint(15) PRIMARY KEY,
+		  URL varchar(500) NOT NULL,
+		  image varchar(20) NOT NULL
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+	");
+	$db->query("
+		CREATE TABLE IF NOT EXISTS iconsorder (
+			username varchar(30) NOT NULL,
+		  orderID int(10) NOT NULL,
+		  ID bigint(15) NOT NULL,
+		  folder varchar(100) NOT NULL
+		) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+	");
+	$db->query("
+		CREATE TABLE IF NOT EXISTS settings (
+			username varchar(30) NOT NULL,
+		  size int(10) NOT NULL,
+		  other varchar(100) NOT NULL
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+	");
+	$db->query("
+		CREATE TABLE IF NOT EXISTS folders (
+			username varchar(30) NOT NULL,
+		  orderID int(10) NOT NULL,
+		  name varchar(100) NOT NULL
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+	");
+	$db->query("
+		CREATE TABLE IF NOT EXISTS users (
+			username varchar(100) PRIMARY KEY,
+			password varchar(128) NOT NULL
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+	");
+
+
+
+
+
+
+
+
+
+	// if user isn't logged in - return response and stop executing further code
+	if(!@$_SESSION["user"]){
+		$response->responseData = "log-in";
+		respond();
+	}
+	$user = adaptToQuery($_SESSION["user"]);
+
+
+
+
+
+
+
+
+
+	if(isset($_REQUEST['getUser'])){
+		$response->responseData = $user;
 	}
 
-	print_r(json_encode($response));
 
-	function adaptToQuery($db, $string)
-	{
-	    return mysqli_real_escape_string($db, $string);
+
+
+
+
+
+
+
+	if(isset($_REQUEST['loadSize'])){
+		if($db->query("SELECT size FROM settings WHERE username = '".$user."'")->fetch_object())		// if size is saved in database, get it
+			$size = $db->query("SELECT size FROM settings WHERE username = '".$user."'")->fetch_object()->size;
+		else{		// otherwise set value and save it to database
+			$size = 100;
+			$db->query("INSERT INTO settings SET username = '".$user."', size = 100");
+		}
+		$response->responseData = $size;
 	}
 
-	function selectColumnToArray($db, $tableName, $columnName, $detailColumnName=0, $detailValue=0){
+
+
+
+
+
+
+
+
+	if(isset($_REQUEST['loadFolderContent'])){
+		$folder = adaptToQuery($_REQUEST['loadFolderContent']);
+		do{
+			$iconsInDB = selectColumnToArray("iconsorder", "ID", "folder", $folder);		// writes to array elements from column "ID" of "iconsorder" table, for selected value in column "folder"
+		}while(count(array_unique($iconsInDB))<count($iconsInDB));	// repeat while there are no duplicates (they apear sometimes for a short time while changing order)
+
+		$results = $db->query("
+			SELECT icons.ID, icons.URL, icons.image
+			FROM iconsorder
+			INNER JOIN icons ON icons.ID = iconsorder.ID
+			WHERE username = '".$user."' AND folder = '".$folder."'
+			ORDER BY iconsorder.orderID ASC
+		");
+
+		while($row = $results->fetch_object()){
+			array_push($icons->ID, $row->ID);
+			array_push($icons->URL, $row->URL);
+			array_push($icons->image, $row->image);
+		}
+		$icons->count = mysqli_num_rows($results);
+
+		$response->responseData = $icons;
+		$response->log = "Loaded content of folder: '".$folder."'";
+		if($folder == "BIN")
+			$response->log = "Loaded content of bin";
+	}
+
+
+
+
+
+
+
+
+
+	if(isset($_REQUEST['loadFolders'])){
+		$foldersList = array();
+		$results = $db->query("SELECT name FROM folders WHERE username = '".$user."' ORDER BY orderID ASC");
+		$foldersCount = mysqli_num_rows($results);
+
+		if($foldersCount){	// if some folders exist, write their names to array 'foldersList'
+			while($row = $results->fetch_object())
+				array_push($foldersList, $row->name);
+		}
+		else{	// if no folder exists, add folder "Start"
+			$db->query("INSERT INTO folders SET username = '".$user."', orderID = 0, name = 'Start'");
+			array_push($foldersList, 'start');
+		}
+
+		$response->log = "Loaded list of folders";
+		$response->responseData = $foldersList;
+	}
+
+
+
+
+
+
+
+
+
+	if(isset($_REQUEST['loadImage'])){
+		$ID = adaptToQuery($_REQUEST['loadImage']);
+		$image = $db->query("SELECT image FROM icons WHERE ID = '".$ID."'")->fetch_object()->image;
+		$response->responseData = $image;
+	}
+
+
+
+
+
+
+
+
+
+	respond();
+
+
+
+
+
+
+
+
+
+	function adaptToQuery($string){
+		global $db;
+		return mysqli_real_escape_string($db, $string);
+	}
+
+
+
+
+	function selectColumnToArray($tableName, $columnName, $detailColumnName=0, $detailValue=0){
+		global $db, $user;
 		$array = array();
+
 		$results = $db->query(
-			"SELECT ".$columnName." FROM ".$tableName.
-			(($detailColumnName) ? " WHERE ".$detailColumnName." = '".$detailValue."'" : "")
+			"SELECT ".$columnName." FROM ".$tableName." ".
+			"WHERE username = '".$user."' ".
+			(($detailColumnName) ? "AND ".$detailColumnName." = '".$detailValue."'" : '')
 		);
+
 		while($row = $results->fetch_object())
 			array_push($array, $row->$columnName);
 		return $array;
 	}
 
-	/*
-		$fname = "ajax_info.txt";
-		$file = fopen($fname, 'w+');
-		fwrite($file, "testtest");
-		fclose($file);
-	*/
+
+
+/*
+	$fname = "ajax_info.txt";
+	$file = fopen($fname, 'w+');
+	fwrite($file, "testtest");
+	fclose($file);
+*/
 ?>

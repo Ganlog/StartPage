@@ -3,10 +3,10 @@ display = {
 			var div = this.createDIV("log", message, 3000);
 		},
 		info: function(message){
-			var div = this.createDIV("info", message, 10000);
+			var div = this.createDIV("info", message, 7000);
 		},
 		error: function(message){
-			var div = this.createDIV("error", message, 10000);
+			var div = this.createDIV("error", message, 7000);
 		},
 		createDIV: function(type, message, time){
 			if(!this.styleSheet) this.init();
@@ -17,6 +17,11 @@ display = {
 				div.innerHTML = message;
 			document.getElementById("messages").appendChild(div);
 			this.arrange();
+
+			div.addEventListener('click', function(){
+				console.log(div.innerHTML);
+				display.log("View console logs to see content of clicked message");
+			}),
 
 			setTimeout(function(){
 				display.removeDIV(div);
@@ -102,10 +107,11 @@ display = {
 					"position: absolute;"+
 					"margin: auto;"+
 					"left: 0;"+
-					"padding: 0 5%;"+
 					"right: 0;"+
 					"top: -30px;"+
 					"width: 90%;"+
+					"padding: 0 5%;"+
+					"cursor: pointer;"+
 					"background-color: #FFF;"+
 					"background-size: 16px;"+
 					"background-position-x: 10px;"+

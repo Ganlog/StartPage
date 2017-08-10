@@ -1,36 +1,35 @@
 #window{
 	display: none;
 	z-index: 100;
-	position: fixed;
+	position: absolute;
 	width: 260px;
-	box-shadow: 0px 0px 0px 10px rgba(0,0,0,0.5);
+	box-shadow: 2px 2px 3px 2px rgba(0,0,0,0.5);
 	left: 50%;
-	top: 50%;
-	transform: translate(-50%, -50%);
+	top: 20%;
+	transform: translate(-50%);
 	margin: auto;
 	background: #FFF;
-	border-radius: 10px;
+	border-radius: 4px;
 	overflow: hidden;
 	text-align: center;
-	padding: 20px 20px;
+	padding: 40px 20px 20px;
 }
 #w_Header{
 	position: absolute;
-	top: 0;
-	left: 0;
-	font-weight: bold;
-	width: 260px;
-	height: 20px;
-	padding: 0 10px;
-	background: gray;
-	text-align: left;
+  top: 10px;
+  left: 0;
+  font-weight: bold;
+  font-size: 18px;
+  width: 300px;
+  height: 20px;
+  text-align: center;
 }
 #w_TurnOFF{
 	position: absolute;
 	top: 0;
 	right: 0;
-	width: 20px;
-	height: 20px;
+	width: 30px;
+	height: 30px;
 	background: url('../images/ix.png');
 	background-size: cover;
 	cursor: pointer;
@@ -52,10 +51,10 @@
 }
 #w_DeleteIkon{
 	display: block;
-    margin: 10px auto 0;
+  margin: 10px auto 0;
 }
 #w_DeleteIkonButton, #w_DeleteFolderButton{
-    margin-top: 5px;
+  margin-top: 5px;
 }
 
 
@@ -77,11 +76,13 @@
 #windowBgBlock.editBg,
 #windowBgBlock.addFolder,
 #windowBgBlock.editFolder,
-#windowBgBlock.definitelyDeleteFolder{
+#windowBgBlock.definitelyDeleteFolder,
+#windowBgBlock.manageAccount,
+#windowBgBlock.log-in,
+#windowBgBlock.sign-up{
 	transition: opacity 1s, height 0s;
 	height: 100%;
 	opacity: .2;
-	cursor: pointer;
 }
 												#window.test,
 #window.addIcon,
@@ -90,47 +91,87 @@
 #window.editBg,
 #window.addFolder,
 #window.editFolder,
-#window.definitelyDeleteFolder{
+#window.definitelyDeleteFolder,
+#window.manageAccount,
+#window.log-in,
+#window.sign-up{
 	display: block;
 }
 
 
 #window.editIcon #w_AddIcon,
-#window.editIcon #w_Folder{
+#window.editIcon #w_Folder,
+#window.editIcon #w_Account,
+#window.editIcon #w_LogOrSign{
 	display: none;
 }
-#window.addIcon #w_Upload,
+#window.addIcon #w_FilesUpload,
 #window.addIcon #w_ChangeIcon,
 #window.addIcon #w_DeleteIkon,
-#window.addIcon #w_Folder{
+#window.addIcon #w_Folder,
+#window.addIcon #w_Account,
+#window.addIcon #w_LogOrSign{
 	display: none;
 }
 #window.uploadImage #w_Icon,
-#window.uploadImage #w_Folder{
+#window.uploadImage #w_Folder,
+#window.uploadImage #w_Account,
+#window.uploadImage #w_LogOrSign{
 	display: none;
 }
 #window.editBg #w_Icon,
-#window.editBg #w_Folder{
+#window.editBg #w_Folder,
+#window.editBg #w_Account,
+#window.editBg #w_LogOrSign{
 	display: none;
 }
 
-#window.addFolder #w_Upload,
+#window.addFolder #w_FilesUpload,
 #window.addFolder #w_Icon,
 #window.addFolder #w_ChangeFolder,
-#window.addFolder #w_DeleteFolder{
+#window.addFolder #w_DeleteFolder,
+#window.addFolder #w_Account,
+#window.addFolder #w_LogOrSign{
 	display: none;
 }
 
-#window.editFolder #w_Upload,
+#window.editFolder #w_FilesUpload,
 #window.editFolder #w_Icon,
 #window.editFolder #w_AddFolder,
-#window.editFolder #w_DeleteFolder{
+#window.editFolder #w_DeleteFolder,
+#window.editFolder #w_Account,
+#window.editFolder #w_LogOrSign{
 	display: none;
 }
 
-#window.definitelyDeleteFolder #w_Upload,
+#window.definitelyDeleteFolder #w_FilesUpload,
 #window.definitelyDeleteFolder #w_Icon,
 #window.definitelyDeleteFolder #w_AddFolder,
-#window.definitelyDeleteFolder #w_ChangeFolder{
+#window.definitelyDeleteFolder #w_ChangeFolder,
+#window.definitelyDeleteFolder #w_Account,
+#window.definitelyDeleteFolder #w_LogOrSign{
+	display: none;
+}
+
+#window.manageAccount #w_FilesUpload,
+#window.manageAccount #w_Icon,
+#window.manageAccount #w_Folder,
+#window.manageAccount #w_LogOrSign{
+	display: none;
+}
+
+#window.log-in #w_FilesUpload,
+#window.log-in #w_Icon,
+#window.log-in #w_Folder,
+#window.log-in #w_Account,
+#window.log-in #w_SignUp{
+	display: none;
+}
+
+#window.sign-up #w_FilesUpload,
+#window.sign-up #w_Icon,
+#window.sign-up #w_Folder,
+#window.sign-up #w_Account,
+#window.sign-up #w_LogIn{
 	display: none;
 }

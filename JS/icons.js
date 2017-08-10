@@ -9,7 +9,6 @@ icons = {
 		order: function(){
 			ajax.onload = function(){
 				if(ajax.responseData == "reload"){
-					display.info("Folder will be reloaded");
 					icons.load.folder(icons.activeFolder);
 				}
 			}
@@ -20,6 +19,8 @@ icons = {
 		},
 		icon: function(ID, URL){
 			ajax.onload = function(){
+				//todo -> correct ID inserted to database is under response.responseData
+				//todo -> ID = response.responseData
 				icons.add(ID, URL);
 				icons.arrange();
 				icons.selected = ID;
@@ -94,11 +95,8 @@ icons = {
 			ajax.onload = function(){
 				icons.activeFolder = folder;
 				if(ajax.responseData){
-					// reset essential values
-						document.getElementById("iconContainer").innerHTML = '';
-						icons.list = {}
-						icons.order = [];
-						icons.count = 0;
+					// remove information about previous icons
+						icons.clear();
 
 					// show folder content
 						var ajaxResp = ajax.responseData;
@@ -110,7 +108,7 @@ icons = {
 					if(icons.activeFolder != "BIN")
 							icons.iconPlus.show();
 					icons.arrange();
-					localStorage['lastActiveFolder'] = folder;
+					localStorage["lastActiveFolder"] = folder;
 				}
 			}
 			ajax.GET("loadFolderContent", folder);
@@ -129,15 +127,33 @@ icons = {
 	edit:{
 		enabled: false,
 		enable: function(){
-			this.enabled = true;
-			tools.changeCSS(".editBlockade","height","100%");
-			tools.changeCSS(".editBlockade","opacity","1");
+			if(!this.enabled){
+				this.enabled = true;
+				tools.changeCSS(".editBlockade","height","100%");
+				tools.changeCSS(".editBlockade","opacity","1");
+			}
 		},
 		disable: function(){
-			this.enabled = false;
-			tools.changeCSS(".editBlockade","height","0%");
-			tools.changeCSS(".editBlockade","opacity","0");
+			if(this.enabled){
+				this.enabled = false;
+				tools.changeCSS(".editBlockade","height","0%");
+				tools.changeCSS(".editBlockade","opacity","0");
+			}
 		},
+	},
+	iconPlus:{
+		show: function(){
+			var iconPlus = document.createElement("div");
+				iconPlus.id = "iconPlus";
+				iconPlus.classList.add("icon");
+				iconPlus.addEventListener('click', function(){ popupWindow.turnON("addIcon"); });
+			document.getElementById("iconContainer").appendChild(iconPlus);
+			icons.arrange();
+		},
+		hide: function(){
+			document.getElementById("iconPlus").remove();
+			icons.arrange();
+		}
 	},
 	moveIconToFolder: function(ID, folder){
 		delete icons.list[ID];						// delete icon from list of icons
@@ -216,6 +232,12 @@ icons = {
 		this.order[this.count] = ID;
 		this.count++;
 	},
+	clear: function(){
+		document.getElementById("iconContainer").innerHTML = '';
+		icons.list = {}
+		icons.order = [];
+		icons.count = 0;
+	},
 	iconObject: function(ID, URL, image){
 		// creating visible icon
 			var div = document.createElement("div");
@@ -280,28 +302,16 @@ icons = {
 			}, 200);
 	})(),
 	windowWidthListener: (function(){
-		var windowWidth = document.getElementById("iconContainer").clientWidth;
-		setInterval(function(){
-			if(windowWidth != document.getElementById("iconContainer").clientWidth){
-				icons.arrange();
-				windowWidth = document.getElementById("iconContainer").clientWidth;
-			}
-		}, 500);
-	})(),
-	iconPlus:{
-		show: function(){
-			var iconPlus = document.createElement("div");
-				iconPlus.id = "iconPlus";
-				iconPlus.classList.add("icon");
-				iconPlus.addEventListener('click', function(){ popupWindow.turnON("addIcon"); });
-			document.getElementById("iconContainer").appendChild(iconPlus);
-			icons.arrange();
-		},
-		hide: function(){
-			document.getElementById("iconPlus").remove();
-			icons.arrange();
+		if(document.getElementById("iconContainer")){
+			var windowWidth = document.getElementById("iconContainer").clientWidth;
+			setInterval(function(){
+				if(windowWidth != document.getElementById("iconContainer").clientWidth){
+					icons.arrange();
+					windowWidth = document.getElementById("iconContainer").clientWidth;
+				}
+			}, 500);
 		}
-	},
+	})(),
 }
 
 

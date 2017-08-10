@@ -29,7 +29,12 @@ ajax = {
 					if(response.error) display.error(response.error);
 					if(response.log) display.log(response.log);
 					if(response.info) display.info(response.info);
-					if(response.responseData) ajax.responseData = response.responseData;
+					if(response.responseData){
+						if(response.responseData == "log-in")
+							popupWindow.turnON("log-in");
+						else
+							ajax.responseData = response.responseData;
+					 }
 					if(onloadFunction) onloadFunction();
 					ajax.responseData = null;
 				}

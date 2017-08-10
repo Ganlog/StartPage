@@ -57,60 +57,60 @@ settings = {
 	},
 	settingsClickListener: (function(){
 		document.getElementById("settings").addEventListener('click', function(e){
+			if(localStorage["currentUser"] == null){
+				popupWindow.turnON("log-in");
+				return;
+			}
+
+			// expand list of settings if "settingsSwitch" clicked
 			if(e.target.id == "settingsSwitch")
 				settings.toggle();
+
+			// expand detailed settings if representative settings button clicked
 			if(e.target.classList.contains("detailedSettingsSwitch"))
 				settings.toggleDetailed(e.target.parentNode);
 
+			// actions for every button in settings list
 			switch(e.target.id){
 				case "sett_editBack":
 					popupWindow.turnON("editBg");
 				break;
 				case "sett_editFolders":
-					if(!folders.edit.enabled)
-						folders.edit.enable();
-					else
-						folders.edit.disable();
+					if(!folders.edit.enabled) folders.edit.enable();
+					else folders.edit.disable();
 				break;
 				case "sett_editIcons":
-				if(!icons.edit.enabled)
-					icons.edit.enable();
-				else
-					icons.edit.disable();
+					if(!icons.edit.enabled) icons.edit.enable();
+					else icons.edit.disable();
+				break;
+				case "sett_account":
+					popupWindow.turnON("manageAccount");
 				break;
 			}
 		});
+
 		mousedown: false,
 		document.getElementById("settings").addEventListener('mousedown', function(e){
 			settings.mousedown = true;
+			var inc_decreaseRatio;
 			switch(e.target.id){
-				case "sett_plus":
-					var growInterval = setInterval(function(){
-						console.log("loop");
-						icons.size++;
-						if(!settings.mousedown)
-							clearInterval(growInterval);
-					},20);
-				break;
-				case "sett_minus":
-				var shrinkInterval = setInterval(function(){
-					console.log("loop");
-					icons.size--;
-					if(!settings.mousedown)
-						clearInterval(shrinkInterval);
-				},20);
-				break;
+				case "sett_plus": inc_decreaseRatio = 1; break;
+				case "sett_minus": inc_decreaseRatio = -1; break;
 			}
+			var inc_decreaseInterval = setInterval(function(){
+				if(inc_decreaseRatio)
+					icons.size += inc_decreaseRatio;
+				if(!settings.mousedown){
+					clearInterval(inc_decreaseInterval);
+					inc_decreaseRatio = 0;
+				}
+			},20);
 		});
 		document.getElementById("settings").addEventListener('mouseup', function(e){
 			settings.mousedown = false;
 			switch(e.target.id){
-				case "sett_plus":
-					icons.save.size();
-				break;
-				case "sett_minus":
-					icons.save.size();
-				break;
+				case "sett_plus": icons.save.size(); break;
+				case "sett_minus": icons.save.size(); break;
 			}
 		});
 	})(),

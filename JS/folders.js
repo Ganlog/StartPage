@@ -20,7 +20,7 @@ folders = {
 	load: function(){
 		ajax.onload = function(){
 			if(ajax.responseData){
-				// reset essential values
+				// remove information about previous folders
 					document.getElementById("mainFolders").innerHTML = '';
 					folders.folderPlus.show();
 
@@ -102,7 +102,7 @@ folders = {
 	deleteFolder: function(folderDIV){
 		if(folderDIV.id.replace("folder_", '').toUpperCase() == "START"){
 			folderDIV.removeAttribute("style");
-			display.info("You can't change name of folder 'Start'");
+			display.info("You can't delete folder 'Start'");
 		}
 		else{
 			ajax.onload = function(){
@@ -135,15 +135,18 @@ folders = {
 	edit:{
 		enabled: false,
 		enable: function(){
-			this.enabled = true;
-
-			var foldersList = document.getElementById("mainFolders").children;
-			tools.changeCSS(".folder","background-position","-60px");
+			if(!this.enabled){
+				this.enabled = true;
+				var foldersList = document.getElementById("mainFolders").children;
+				tools.changeCSS(".folder","background-position","-60px");
+		}
 		},
 		disable: function(){
-			this.enabled = false;
-			var foldersList = document.getElementById("mainFolders").children;
-			tools.changeCSS(".folder","background-position","0px");
+			if(this.enabled){
+				this.enabled = false;
+				var foldersList = document.getElementById("mainFolders").children;
+				tools.changeCSS(".folder","background-position","0px");
+			}
 		},
 	},
 	folderPlus:{
