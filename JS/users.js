@@ -3,6 +3,9 @@ users = {
     ajax.onload = function(){
       if(ajax.responseData){
         localStorage["currentUser"] = ajax.responseData;
+        icons.load.size();
+        icons.load.folder(localStorage["lastActiveFolder"] || "Start");
+        folders.load();
       }
     }
     ajax.GET("getUser");
@@ -12,6 +15,18 @@ users = {
     icons.load.folder("Start");
     folders.load();
     popupWindow.turnOFF();
+  },
+  removeUserContent: function(){
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("lastActiveFolder");
+
+    document.getElementById("mainFolders").innerHTML = '';
+    folders.edit.disable();
+    icons.clear();
+    icons.size = 0;
+    icons.edit.disable();
+
+    settings.hide();
   },
 
   signUpCheck: function(){
@@ -63,18 +78,7 @@ users = {
 
   logOut: function(){
     ajax.onload = function(){
-      localStorage.removeItem("currentUser");
-
-      //remove folders, icons and settings
-      localStorage.removeItem("lastActiveFolder");
-      folders.edit.disable();
-      document.getElementById("mainFolders").innerHTML = '';
-
-      icons.edit.disable();
-      icons.clear();
-      icons.size = 0;
-      icons.edit.disable();
-      settings.hide();
+      users.removeUserContent();
       popupWindow.turnON("log-in");
     }
     ajax.POST("log-out");

@@ -10,9 +10,6 @@
 	<script>
 		window.onload = function(){
 			users.getCurrentUser();
-			icons.load.size();
-			icons.load.folder(localStorage["lastActiveFolder"] || "Start");
-			folders.load();
 		}
 	</script>
 

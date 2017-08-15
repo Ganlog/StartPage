@@ -137,14 +137,12 @@ folders = {
 		enable: function(){
 			if(!this.enabled){
 				this.enabled = true;
-				var foldersList = document.getElementById("mainFolders").children;
 				tools.changeCSS(".folder","background-position","-60px");
-		}
+			}
 		},
 		disable: function(){
 			if(this.enabled){
 				this.enabled = false;
-				var foldersList = document.getElementById("mainFolders").children;
 				tools.changeCSS(".folder","background-position","0px");
 			}
 		},

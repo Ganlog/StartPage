@@ -22,13 +22,33 @@
 
 
 	include 'logDB.php';
-	$db = @new mysqli($host, $user, $password, $dbname);
+	$db = @new mysqli($db_host, $db_user, $db_pass, $db_name);
 	if ($db->connect_error) {
 		$response->error = "Database connection error. <br>";
 		$response->error .= "Error number ".$db->connect_errno.": ".mb_convert_encoding($db->connect_error, 'utf-8');
-
+		respond();
 	}
+
+
+
+
+
+
+
+
+
 	session_start();
+	session_regenerate_id();
+
+	// if no user is logged in and $_REQUEST is different than "sign-up" and "log-in" - send info to log in
+	if (!isset($_SESSION["user"]) && !isset($_REQUEST['sign-up']) && !isset($_REQUEST['log-in'])){
+		session_destroy();
+		$response->responseData = "log-in";
+		respond();
+	}
+	if (isset($_SESSION["user"]))
+		$user = adaptToQuery($_SESSION["user"]);
+	$_SESSION['lastActTime'] = time();
 
 
 
@@ -58,7 +78,7 @@
 		}
 		else
 			$response->error = "User with this username already exists";
-			respond();
+		respond();
 	}
 
 
@@ -84,22 +104,8 @@
 		}
 		else
 			$response->error = "Wrong login or password. Try again";
-	}
-
-
-
-
-
-
-
-
-
-	// if user isn't logged in - return response and stop executing further code
-	if(!@$_SESSION["user"]){
-		$response->responseData = "log-in";
 		respond();
 	}
-	$user = adaptToQuery($_SESSION["user"]);
 
 
 
@@ -109,10 +115,11 @@
 
 
 
-		if(isset($_REQUEST['log-out'])){
-			session_destroy();
-			$response->log = "Successfully logged out";
-		}
+	if(isset($_REQUEST['log-out'])){
+		session_destroy();
+		$response->log = "Successfully logged out";
+		respond();
+	}
 
 
 
@@ -129,13 +136,11 @@
 
 		$folderCount = $db->query("SELECT COUNT(*) AS count FROM iconsorder WHERE username = '".$user."' AND folder = '".$folder."'")->fetch_object()->count;
 
-		//todo -> check if icon with selected ID exist
-		//todo -> if it exist add +1 to its id in while Loop
-		//todo -> after insterting it to database return correct ID by "$response->responseData"
 		$db->query("INSERT INTO iconsorder SET username = '".$user."', orderID = '".$folderCount."', ID = '".$ID."', folder = '".$folder."'");
 		$db->query("INSERT INTO icons SET ID = '".$ID."', URL = '".$URL."'");
 
 		$response->log = "Icon added to folder '".$folder."'";
+		respond();
 	}
 
 
@@ -160,6 +165,7 @@
 			@unlink('../images/icons/'.$image);
 			$response->log .= "<br>Removed file ".$image;
 		}
+		respond();
 	}
 
 
@@ -175,11 +181,6 @@
 		$newOrder = json_decode($_POST["order"]);
 		$iconsInDB = selectColumnToArray("iconsorder", "ID", "folder", $folder);		// writes to array elements from column "ID" of table "iconsorder", for selected value in column "folder"
 
-		//print_r($newOrder);
-		//rint_r("<br><br><br><br><br>");
-		//print_r($iconsInDB);
-
-
 		if((count($newOrder) == count($iconsInDB)) && !array_diff($newOrder,$iconsInDB)){
 			for($i=0; $i<count($newOrder); $i++){
 				$db->query("
@@ -193,6 +194,7 @@
 			$response->error = "Icons sent to server were different than in database. Page should reload in a second or less";
 			$response->responseData = "reload";
 		}
+		respond();
 	}
 
 
@@ -208,6 +210,7 @@
 		$ID = adaptToQuery($_POST["ID"]);
 		$db->query("UPDATE icons SET URL = '".$URL."' WHERE ID = '".$ID."'");
 		$response->log = "Icon URL changed to '".$URL."'";
+		respond();
 	}
 
 
@@ -221,6 +224,7 @@
 	if(isset($_REQUEST['saveSize'])){
 		$db->query("UPDATE settings SET size = ".adaptToQuery($_POST["size"])." WHERE username = '".$user."'");
 		$response->log = "Icons size saved";
+		respond();
 	}
 
 
@@ -256,6 +260,7 @@
 					$response->error = "Error occurred while saving background image, probably access privileges on server are incorrect";
 			}
 		}
+		respond();
 	}
 
 
@@ -301,6 +306,7 @@
 					$response->error = "Error occurred while saving image, probably access privileges on server are incorrect";
 			}
 		}
+		respond();
 	}
 
 
@@ -348,6 +354,7 @@
 				$response->error = "Error occurred while saving background image, probably access privileges on server are incorrect";
 		}
 		@unlink($path.$filename.".tmp");
+		respond();
 	}
 
 
@@ -405,6 +412,7 @@
 				$response->error = "Error occurred while saving background image, probably access privileges on server are incorrect";
 		}
 		@unlink($path.$filename.".tmp");
+		respond();
 	}
 
 
@@ -429,6 +437,7 @@
 
 			$response->log = "Folder '".$name."' added";
 		}
+		respond();
 	}
 
 
@@ -450,6 +459,7 @@
 			deleteWithOrderIdDecrease("folders", "name", $name);	// delete folder with selected "name" from table "folders", and decrease every next "orderID" by 1
 			$response->log = "Folder '".$name."' deleted, it's content is now inside bin";
 		}
+		respond();
 	}
 
 
@@ -490,6 +500,7 @@
 			$response->error = "This folder doesn't exist anymore";
 			$response->responseData = "reload";
 		}
+		respond();
 	}
 
 
@@ -531,6 +542,7 @@
 			$response->error = "This folder doesn't exist anymore";
 			$response->responseData = "reload";
 		}
+		respond();
 	}
 
 
@@ -559,17 +571,8 @@
 			$response->error = "Folders sent to server are different than in database";
 			$response->responseData = "reload";
 		}
+		respond();
 	}
-
-
-
-
-
-
-
-
-
-	respond();
 
 
 
@@ -622,6 +625,17 @@
 			"WHERE username = '".$user."' ".
 			(($detailColumnName) ? "AND ".$detailColumnName." = '".$detailValue."'" : '')
 		);
+
+
+		$fname = "ajax_info.txt";
+		$file = fopen($fname, 'w+');
+		fwrite($file, "SELECT ".$columnName." FROM ".$tableName." ".
+		"WHERE username = '".$user."' ".
+		(($detailColumnName) ? "AND ".$detailColumnName." = '".$detailValue."'" : ''));
+		fclose($file);
+
+
+
 		while($row = $results->fetch_object())
 			array_push($array, $row->$columnName);
 		return $array;

@@ -108,6 +108,7 @@ popupWindow = {
 			break;
 
 			case "log-in": {
+				users.removeUserContent();
 				document.getElementById("w_Header").innerHTML = "Log in:";
 				document.getElementById("w_LogInUser").addEventListener('keyup', function(e){ if(e.keyCode == 13) document.getElementById("w_LogInPass").focus(); });
 				document.getElementById("w_LogInPass").addEventListener('keyup', function(e){ if(e.keyCode == 13) document.getElementById("w_LogInButton").click(); });
@@ -118,6 +119,7 @@ popupWindow = {
 			break;
 
 			case "sign-up": {
+				users.removeUserContent();
 				document.getElementById("w_Header").innerHTML = "Sign up:";
 				document.getElementById("w_SignUpUser").addEventListener('keyup', function(e){ if(e.keyCode == 13) document.getElementById("w_SignUpPass").focus(); });
 				document.getElementById("w_SignUpPass").addEventListener('keyup', function(e){ if(e.keyCode == 13) document.getElementById("w_SignUpConfPass").focus(); });

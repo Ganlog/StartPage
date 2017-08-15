@@ -49,11 +49,11 @@ ajax = {
 		}
 
 		if(method == "POST"){
-			xmlhttp.open("POST", "AJAX/ajaxPOST.php?"+action, true);
+			xmlhttp.open("POST", "PHP/ajaxPOST.php?"+action, true);
 			xmlhttp.send(data);
 		}
 		else if(method == "GET"){
-			xmlhttp.open("GET", "AJAX/ajaxGET.php?"+action+"="+data, true);
+			xmlhttp.open("GET", "PHP/ajaxGET.php?"+action+"="+data, true);
 			xmlhttp.send();
 		}
 	},
