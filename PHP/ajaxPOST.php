@@ -35,20 +35,22 @@
 
 
 
+	// if $_REQUEST is different than "sign-up" and "log-in"
+	if(!isset($_REQUEST['sign-up']) && !isset($_REQUEST['log-in'])){
+		// check correctness of user verification cookies from client side
+		if(!isset($_COOKIE["user"]) || !isset($_COOKIE["sessID"])){
+			$response->responseData = "log-in";
+			respond();
+		}
+		$user = adaptToQuery($_COOKIE["user"]);
+		$sessID = adaptToQuery($_COOKIE["sessID"]);
+		$sessVerify = mysqli_num_rows($db->query("SELECT username FROM sessions WHERE username = '".$user."' AND sessionID = '".$sessID."'"));
 
-
-	session_start();
-	session_regenerate_id();
-
-	// if no user is logged in and $_REQUEST is different than "sign-up" and "log-in" - send info to log in
-	if (!isset($_SESSION["user"]) && !isset($_REQUEST['sign-up']) && !isset($_REQUEST['log-in'])){
-		session_destroy();
-		$response->responseData = "log-in";
-		respond();
+		if(!$sessVerify){
+			$response->responseData = "log-in";
+			respond();
+		}
 	}
-	if (isset($_SESSION["user"]))
-		$user = adaptToQuery($_SESSION["user"]);
-	$_SESSION['lastActTime'] = time();
 
 
 
@@ -61,7 +63,7 @@
 	if(isset($_REQUEST['sign-up'])){
 		$user = adaptToQuery($_POST["user"]);
 		$password = adaptToQuery($_POST["pass"]);
-		$passEncrypted = hash('sha512',$password);
+		$passEncrypted = password_hash($password, PASSWORD_BCRYPT);
 
 		if(strlen($user) > 30){
 			$response->error = "Maximum length of username is 30. Your username has ".strlen($user)." characters";
@@ -72,7 +74,12 @@
 		$checkUser = mysqli_num_rows($db->query("SELECT username FROM users WHERE username = '".$user."'"));
 		if(!$checkUser){
 			$db->query("INSERT INTO users SET username = '".$user."', password = '".$passEncrypted."'");
-			$_SESSION["user"] = $user;
+			setcookie("user", $user, time()+(86400*30), "/");
+
+			$sessID = password_hash(time(), PASSWORD_BCRYPT);
+			$db->query("INSERT INTO sessions SET username = '".$user."', sessionID = '".$sessID."'");
+			setcookie("sessID", $sessID, time()+(86400*30), "/");
+
 			$response->log = "Registered as '".$user."'";
 			$response->responseData = $user;
 		}
@@ -92,13 +99,16 @@
 	if(isset($_REQUEST['log-in'])){
 		$user = adaptToQuery($_POST["user"]);
 		$password = adaptToQuery($_POST["pass"]);
-		$passEncrypted = hash('sha512',$password);
 
-		// check if user with this username and password exists in database
-		$checkUser = mysqli_num_rows($db->query("SELECT username FROM users WHERE username = '".$user."' AND password = '".$passEncrypted."'"));
-		if($checkUser){
+		$hashPass = $db->query("SELECT password FROM users WHERE username = '".$user."'")->fetch_object()->password;
+		if(password_verify($password, $hashPass)){
 			$user = $db->query("SELECT username FROM users WHERE username = '".$user."'")->fetch_object()->username; // it is used to get original upper/lowerCases
-			$_SESSION["user"] = $user;
+			setcookie("user", $user, time()+(86400*30), "/");
+
+			$sessID = password_hash(time(), PASSWORD_BCRYPT);
+			$db->query("INSERT INTO sessions SET username = '".$user."', sessionID = '".$sessID."'");
+			setcookie("sessID", $sessID, time()+(86400*30), "/");
+
 			$response->log = "Logged in as '".$user."'";
 			$response->responseData = $user;
 		}
@@ -116,7 +126,9 @@
 
 
 	if(isset($_REQUEST['log-out'])){
-		session_destroy();
+		setcookie("user", "", 0, "/");	// delete cookie
+		$db->query("DELETE FROM sessions WHERE sessionID = '".$_COOKIE["sessID"]."'");
+		setcookie("sessID", "", 0, "/");
 		$response->log = "Successfully logged out";
 		respond();
 	}
@@ -224,6 +236,7 @@
 	if(isset($_REQUEST['saveSize'])){
 		$db->query("UPDATE settings SET size = ".adaptToQuery($_POST["size"])." WHERE username = '".$user."'");
 		$response->log = "Icons size saved";
+		$response->log .= "<br>".time();
 		respond();
 	}
 
@@ -426,17 +439,22 @@
 	if(isset($_REQUEST['addFolder'])){
 		$name = adaptToQuery($_POST["name"]);
 
+		if(strlen($name) > 30){
+			$response->error = "Maximum length of folder name is 30. Your name has ".strlen($name)." characters";
+			$response->responseData = "nameTooLong";
+			respond();
+		}
+
 		$foldersInDB = selectColumnToArray("folders", "name");	// writes to array elements from column "name" of table "folders"
 		if(in_array($name, $foldersInDB)){
 			$response->info = "This folder is already in database";
 			$response->responseData = "alreadyExist";
+			respond();
 		}
-		else{
-			$foldersCount = $db->query("SELECT COUNT(*) AS count FROM folders WHERE username = '".$user."'")->fetch_object()->count;
-			$db->query("INSERT INTO folders SET username = '".$user."', orderID = ".$foldersCount.", name = '".$name."'");
 
-			$response->log = "Folder '".$name."' added";
-		}
+		$foldersCount = $db->query("SELECT COUNT(*) AS count FROM folders WHERE username = '".$user."'")->fetch_object()->count;
+		$db->query("INSERT INTO folders SET username = '".$user."', orderID = ".$foldersCount.", name = '".$name."'");
+		$response->log = "Folder '".$name."' added";
 		respond();
 	}
 
@@ -625,16 +643,6 @@
 			"WHERE username = '".$user."' ".
 			(($detailColumnName) ? "AND ".$detailColumnName." = '".$detailValue."'" : '')
 		);
-
-
-		$fname = "ajax_info.txt";
-		$file = fopen($fname, 'w+');
-		fwrite($file, "SELECT ".$columnName." FROM ".$tableName." ".
-		"WHERE username = '".$user."' ".
-		(($detailColumnName) ? "AND ".$detailColumnName." = '".$detailValue."'" : ''));
-		fclose($file);
-
-
 
 		while($row = $results->fetch_object())
 			array_push($array, $row->$columnName);

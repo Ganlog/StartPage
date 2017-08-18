@@ -45,8 +45,9 @@ folders = {
 		newFolder: function(name){
 			name = folders.displayFormat(name);
 			ajax.onload = function(){
-				if(ajax.responseData != "alreadyExist"){
+				if((ajax.responseData != "alreadyExist") && (ajax.responseData != "nameTooLong")){
 					folders.add(name);
+					popupWindow.turnOFF();
 				}
 			}
 			var data = new FormData();

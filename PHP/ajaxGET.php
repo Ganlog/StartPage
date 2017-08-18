@@ -28,6 +28,7 @@
 
 
 
+
 	// conecting to database
 	include 'logDB.php';
 	$db = @new mysqli($db_host, $db_user, $db_pass, $db_name);
@@ -58,27 +59,33 @@
 			username varchar(30) NOT NULL,
 			orderID int(10) NOT NULL,
 			ID bigint(15) NOT NULL,
-			folder varchar(100) NOT NULL
+			folder varchar(30) NOT NULL
 		) DEFAULT CHARSET=utf8;
 	");
 	$db->query("
 		CREATE TABLE IF NOT EXISTS settings (
 			username varchar(30) NOT NULL,
 			size int(10) NOT NULL,
-			other varchar(100) NOT NULL
+			other varchar(30) NOT NULL
 		) DEFAULT CHARSET=utf8;
 	");
 	$db->query("
 		CREATE TABLE IF NOT EXISTS folders (
 			username varchar(30) NOT NULL,
 			orderID int(10) NOT NULL,
-			name varchar(100) NOT NULL
+			name varchar(30) NOT NULL
 		) DEFAULT CHARSET=utf8;
 	");
 	$db->query("
 		CREATE TABLE IF NOT EXISTS users (
-			username varchar(100) PRIMARY KEY,
-			password varchar(128) NOT NULL
+			username varchar(30) PRIMARY KEY,
+			password varchar(60) NOT NULL
+		) DEFAULT CHARSET=utf8;
+	");
+	$db->query("
+		CREATE TABLE IF NOT EXISTS sessions (
+			username varchar(30) NOT NULL,
+			sessionID varchar(60) NOT NULL
 		) DEFAULT CHARSET=utf8;
 	");
 
@@ -90,17 +97,19 @@
 
 
 
-	session_start();
-	session_regenerate_id();
-
-	// on "getUser" request - if page was unactive for more than 60 minutes or session variable "user" is not set - destroy session
-	if((isset($_REQUEST['getUser']) && (!isset($_SESSION['lastActTime']) || (time()-$_SESSION['lastActTime'] > 3600))) || !isset($_SESSION["user"])){
-		session_destroy();
+	// check correctness of user verification cookies from client side
+	if(!isset($_COOKIE["user"]) || !isset($_COOKIE["sessID"])){
 		$response->responseData = "log-in";
 		respond();
 	}
-	$user = adaptToQuery($_SESSION["user"]);
-	$_SESSION['lastActTime'] = time();
+	$user = adaptToQuery($_COOKIE["user"]);
+	$sessID = adaptToQuery($_COOKIE["sessID"]);
+	$sessVerify = mysqli_num_rows($db->query("SELECT username FROM sessions WHERE username = '".$user."' AND sessionID = '".$sessID."'"));
+
+	if(!$sessVerify){
+		$response->responseData = "log-in";
+		respond();
+	}
 
 
 
@@ -111,6 +120,10 @@
 
 
 	if(isset($_REQUEST['getUser'])){
+		setcookie("user", $user, time()+(86400*30), "/"); // extend lifespan of cookie by another 30 days (86400s = 1 day)
+		$newSessID = password_hash(time(), PASSWORD_BCRYPT);
+		$db->query("UPDATE sessions SET sessionID = '".$newSessID."' WHERE sessionID = '".$sessID."'");
+		setcookie("sessID", $newSessID, time()+(86400*30), "/");
 		$response->responseData = $user;
 		respond();
 	}

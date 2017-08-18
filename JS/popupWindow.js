@@ -75,8 +75,8 @@ popupWindow = {
 			case "addFolder": {
 				document.getElementById("w_Header").innerHTML = "Add folder:";
 				document.getElementById("w_AddFolderName").focus();
-				document.getElementById("w_AddFolderName").addEventListener('keyup', function(e){ if(e.keyCode == 13){ folders.save.newFolder(this.value); popupWindow.turnOFF();} });
-				document.getElementById("w_AddFolderNameOK").addEventListener('click', function(e){ folders.save.newFolder(document.getElementById("w_AddFolderName").value); popupWindow.turnOFF(); });
+				document.getElementById("w_AddFolderName").addEventListener('keyup', function(e){ if(e.keyCode == 13) folders.save.newFolder(this.value); });
+				document.getElementById("w_AddFolderNameOK").addEventListener('click', function(e){ folders.save.newFolder(document.getElementById("w_AddFolderName").value); });
 			}
 			break;
 

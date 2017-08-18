@@ -280,7 +280,7 @@ icons = {
 				this.a = a;
 	},
 	sizeListener: (function(){
-		// first size set and arrangement (50 miliseconds delay is necessary to give time to finish creation of "icons" class)
+		// set icons size and arrange them (50 miliseconds delay is necessary to give time to finish creation of "icons" class)
 			var oldSize;
 			setTimeout(function(){
 				tools.changeCSS(".icon", "width", icons.size+"px");
@@ -290,7 +290,7 @@ icons = {
 				oldSize = icons.size;
 			}, 50);
 
-		// set icon size ang arrange them every time size is changed
+		// set icons size and arrange them every time size is changed
 			setInterval(function(){
 				if(icons.size != oldSize){
 					tools.changeCSS(".icon", "width", icons.size+"px");
