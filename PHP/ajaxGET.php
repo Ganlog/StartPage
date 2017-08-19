@@ -85,7 +85,8 @@
 	$db->query("
 		CREATE TABLE IF NOT EXISTS sessions (
 			username varchar(30) NOT NULL,
-			sessionID varchar(60) NOT NULL
+			sessionID varchar(60) NOT NULL,
+  		expireTime bigint(20) NOT NULL
 		) DEFAULT CHARSET=utf8;
 	");
 
@@ -120,10 +121,15 @@
 
 
 	if(isset($_REQUEST['getUser'])){
-		setcookie("user", $user, time()+(86400*30), "/"); // extend lifespan of cookie by another 30 days (86400s = 1 day)
-		$newSessID = password_hash(time(), PASSWORD_BCRYPT);
-		$db->query("UPDATE sessions SET sessionID = '".$newSessID."' WHERE sessionID = '".$sessID."'");
-		setcookie("sessID", $newSessID, time()+(86400*30), "/");
+		$expireTime = time()+(86400*30);
+		setcookie("user", $user, $expireTime, "/"); // extend lifespan of cookie by another 30 days (86400s = 1 day)
+		$newSessID = str_shuffle(password_hash($sessID, PASSWORD_BCRYPT));
+		$db->query("UPDATE sessions SET sessionID = '".$newSessID."', expireTime = '".$expireTime."' WHERE sessionID = '".$sessID."'");
+		setcookie("sessID", $newSessID, $expireTime, "/"); // set new sessionID cookie for another 30 days
+
+		// delete unactive sessions older than 30 days
+		$db->query("DELETE FROM sessions WHERE expireTime < '".time()."'");
+
 		$response->responseData = $user;
 		respond();
 	}

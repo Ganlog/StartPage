@@ -64,6 +64,7 @@
 		$user = adaptToQuery($_POST["user"]);
 		$password = adaptToQuery($_POST["pass"]);
 		$passEncrypted = password_hash($password, PASSWORD_BCRYPT);
+		$expireTime = time()+(86400*30);
 
 		if(strlen($user) > 30){
 			$response->error = "Maximum length of username is 30. Your username has ".strlen($user)." characters";
@@ -74,11 +75,11 @@
 		$checkUser = mysqli_num_rows($db->query("SELECT username FROM users WHERE username = '".$user."'"));
 		if(!$checkUser){
 			$db->query("INSERT INTO users SET username = '".$user."', password = '".$passEncrypted."'");
-			setcookie("user", $user, time()+(86400*30), "/");
+			setcookie("user", $user, $expireTime, "/");
 
-			$sessID = password_hash(time(), PASSWORD_BCRYPT);
-			$db->query("INSERT INTO sessions SET username = '".$user."', sessionID = '".$sessID."'");
-			setcookie("sessID", $sessID, time()+(86400*30), "/");
+			$sessID = str_shuffle(password_hash($user.time(), PASSWORD_BCRYPT));
+			$db->query("INSERT INTO sessions SET username = '".$user."', sessionID = '".$sessID."', expireTime = '".$expireTime."'");
+			setcookie("sessID", $sessID, $expireTime, "/");
 
 			$response->log = "Registered as '".$user."'";
 			$response->responseData = $user;
@@ -99,15 +100,16 @@
 	if(isset($_REQUEST['log-in'])){
 		$user = adaptToQuery($_POST["user"]);
 		$password = adaptToQuery($_POST["pass"]);
+		$expireTime = time()+(86400*30);
 
 		$hashPass = $db->query("SELECT password FROM users WHERE username = '".$user."'")->fetch_object()->password;
 		if(password_verify($password, $hashPass)){
 			$user = $db->query("SELECT username FROM users WHERE username = '".$user."'")->fetch_object()->username; // it is used to get original upper/lowerCases
-			setcookie("user", $user, time()+(86400*30), "/");
+			setcookie("user", $user, $expireTime, "/");
 
-			$sessID = password_hash(time(), PASSWORD_BCRYPT);
-			$db->query("INSERT INTO sessions SET username = '".$user."', sessionID = '".$sessID."'");
-			setcookie("sessID", $sessID, time()+(86400*30), "/");
+			$sessID = str_shuffle(password_hash($user.time(), PASSWORD_BCRYPT));
+			$db->query("INSERT INTO sessions SET username = '".$user."', sessionID = '".$sessID."', expireTime = '".$expireTime."'");
+			setcookie("sessID", $sessID, $expireTime, "/");
 
 			$response->log = "Logged in as '".$user."'";
 			$response->responseData = $user;
