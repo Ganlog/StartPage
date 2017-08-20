@@ -98,7 +98,7 @@
 	display: block;
 }
 
-
+#window.editIcon #w_restoreDefBG,
 #window.editIcon #w_AddIcon,
 #window.editIcon #w_Folder,
 #window.editIcon #w_Account,
@@ -113,6 +113,7 @@
 #window.addIcon #w_LogOrSign{
 	display: none;
 }
+#window.uploadImage #w_restoreDefBG,
 #window.uploadImage #w_Icon,
 #window.uploadImage #w_Folder,
 #window.uploadImage #w_Account,

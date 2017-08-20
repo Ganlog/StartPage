@@ -72,9 +72,6 @@ settings = {
 
 			// actions for every button in settings list
 			switch(e.target.id){
-				case "sett_editBack":
-					popupWindow.turnON("editBg");
-				break;
 				case "sett_editFolders":
 					if(!folders.edit.enabled) folders.edit.enable();
 					else folders.edit.disable();

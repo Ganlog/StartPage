@@ -68,7 +68,8 @@ icons = {
 		},
 		bgFILE: function(file){
 			ajax.onload = function(){
-				document.body.style.backgroundImage = "url('images/bg.jpg?"+tools.generateID()+"')";
+				if(ajax.responseData)
+					document.body.style.backgroundImage = "url('images/"+ajax.responseData+"?"+tools.generateID()+"')";
 			}
 			var data = new FormData();
 				data.append("image", file);
@@ -76,7 +77,8 @@ icons = {
 		},
 		bgURL: function(URL){
 			ajax.onload = function(){
-				document.body.style.backgroundImage = "url('images/bg.jpg?"+tools.generateID()+"')";
+				if(ajax.responseData)
+					document.body.style.backgroundImage = "url('images/"+ajax.responseData+"?"+tools.generateID()+"')";
 			}
 			var data = new FormData();
 				data.append("URL", URL);

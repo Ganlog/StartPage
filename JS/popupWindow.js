@@ -69,6 +69,7 @@ popupWindow = {
 					if(e.dataTransfer.getData("URL"))			icons.save.bgURL(e.dataTransfer.getData("URL"));
 					document.getElementById("w_DropUpload").style.display = "none";
 				});
+				document.getElementById("w_restoreDefBG").addEventListener('click', function(e){ users.load.defaultBackground(); });
 			}
 			break;
 
@@ -103,6 +104,7 @@ popupWindow = {
 			case "manageAccount": {
 				document.getElementById("w_Header").innerHTML = "Manage account:";
 				document.getElementById("w_Username").innerHTML = localStorage['currentUser'];
+				document.getElementById("w_ChangeBG").addEventListener('click', function(){ popupWindow.turnON("editBg"); });
 				document.getElementById("w_LogOutButton").addEventListener('click', function(){ users.logOut(); });
 			}
 			break;

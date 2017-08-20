@@ -236,9 +236,29 @@
 
 
 	if(isset($_REQUEST['saveSize'])){
-		$db->query("UPDATE settings SET size = ".adaptToQuery($_POST["size"])." WHERE username = '".$user."'");
+		$db->query("UPDATE settings SET iconSize = ".adaptToQuery($_POST["size"])." WHERE username = '".$user."'");
 		$response->log = "Icons size saved";
-		$response->log .= "<br>".time();
+		respond();
+	}
+
+
+
+
+
+
+
+
+
+	if(isset($_REQUEST['restoreDefaultBG'])){
+		$BG = $db->query("SELECT background FROM settings WHERE username = '".$user."'")->fetch_object()->background; //check if user has his own custom background image
+		if($BG != 0){
+			@unlink("../images/bg/".$BG.".jpg");
+			$db->query("UPDATE settings SET background = 0 WHERE username = '".$user."'");
+			$response->log = "Custom background removed";
+		}
+		else
+			$response->log = "Default background is already set";
+
 		respond();
 	}
 
@@ -256,8 +276,9 @@
 		}
 		else{
 			$image = $_FILES["image"];
-			$path = "../images/";
-			$filename = "bg";
+			$path = "../images/bg/";
+			$BG = $db->query("SELECT background FROM settings WHERE username = '".$user."'")->fetch_object()->background; //check if user has his own custom background image
+			$filename = ($BG != 0) ? $BG : time(); // if he has -> get its name, and if not -> generate new name
 
 			switch($image["type"]){
 				case 'image/jpeg':
@@ -269,8 +290,11 @@
 					$response->error = "Incorrect file extension";
 			}
 			if($extension){
-				if (move_uploaded_file($image["tmp_name"], $path.$filename.$extension))
+				if (move_uploaded_file($image["tmp_name"], $path.$filename.$extension)){
+					$db->query("UPDATE settings SET background = ".$filename." WHERE username = '".$user."'");
+					$response->responseData = $path.$filename.$extension;
 					$response->log = "Background image saved";
+				}
 				else
 					$response->error = "Error occurred while saving background image, probably access privileges on server are incorrect";
 			}
@@ -334,8 +358,10 @@
 
 	if(isset($_REQUEST['saveBgURL'])){
 		$URL = $_POST["URL"];
-		$path = "../images/";
-		$filename = "bg";
+		$path = "../images/bg/";
+		$BG = $db->query("SELECT background FROM settings WHERE username = '".$user."'")->fetch_object()->background; //check if user has his own custom background image
+		$filename = ($BG != 0) ? $BG : time(); // if he has -> get its name, and if not -> generate new name
+
 
 		$tmpFile = fopen($path.$filename.".tmp", 'w+');        	 	// temporarly save file to server with .tmp extension
 		$cURL = curl_init($URL);
@@ -363,8 +389,13 @@
 
 		if(@$extension){
 			//if(imagejpeg( imagecreatefromstring(file_get_contents($path.$filename.".tmp"))  ,  $path.$filename.$extension))    // <- change .jpg, .png and .gif format to .jpg
-			if(@copy($path.$filename.".tmp",  $path.$filename.$extension))			// <- save .jpg, .png and .gif with extension .jpg without changing format
+			if(@copy($path.$filename.".tmp",  $path.$filename.$extension)){			// <- save .jpg, .png and .gif with extension .jpg without changing format and if succeded
+				if($BG == 0)
+					$db->query("UPDATE settings SET background = ".$filename." WHERE username = '".$user."'");
+
+				$response->responseData = $path.$filename.$extension;
 				$response->log = "Background saved";
+			}
 			else
 				$response->error = "Error occurred while saving background image, probably access privileges on server are incorrect";
 		}
@@ -619,10 +650,10 @@
 				(($detailColumnName) ? "AND ".$detailColumnName." = '".$detailValue."'" : '')
 			)->fetch_object()->count;
 
-		// creating array of elements orderIDs which will be deleted
+		// get orderID of deleted element
 			$orderID = $db->query("SELECT orderID FROM ".$tableName." WHERE username = '".$user."' AND ".$columnName." = '".$value."'")->fetch_object()->orderID;
 
-		// deleting elements
+		// delete element
 			$db->query("DELETE FROM ".$tableName." WHERE username = '".$user."' AND ".$columnName." = '".$value."'");
 
 		// decreasing every next "orderID" by 1

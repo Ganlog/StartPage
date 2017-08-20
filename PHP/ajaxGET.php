@@ -65,8 +65,8 @@
 	$db->query("
 		CREATE TABLE IF NOT EXISTS settings (
 			username varchar(30) NOT NULL,
-			size int(10) NOT NULL,
-			other varchar(30) NOT NULL
+			iconSize int(10) NOT NULL,
+			background bigint(20) NOT NULL
 		) DEFAULT CHARSET=utf8;
 	");
 	$db->query("
@@ -143,13 +143,29 @@
 
 
 	if(isset($_REQUEST['loadSize'])){
-		if($db->query("SELECT size FROM settings WHERE username = '".$user."'")->fetch_object())		// if size is saved in database, get it
-			$size = $db->query("SELECT size FROM settings WHERE username = '".$user."'")->fetch_object()->size;
-		else{		// otherwise set value and save it to database
-			$size = 100;
-			$db->query("INSERT INTO settings SET username = '".$user."', size = 100");
+		$iconSize = @$db->query("SELECT iconSize FROM settings WHERE username = '".$user."'")->fetch_object()->iconSize; // if iconSize is saved in database, get it
+		if($iconSize == 0){		// otherwise set value and save it to database
+			$iconSize = 100;
+			$db->query("INSERT INTO settings SET username = '".$user."', iconSize = ".$iconSize);
 		}
-		$response->responseData = $size;
+		$response->responseData = $iconSize;
+		respond();
+	}
+
+
+
+
+
+
+
+
+
+	if(isset($_REQUEST['loadBG'])){
+		$BG = @$db->query("SELECT background FROM settings WHERE username = '".$user."'")->fetch_object()->background;
+		if($BG == 0)
+			$response->responseData = "bg.jpg";
+		else
+			$response->responseData = "bg/".$BG.".jpg";
 		respond();
 	}
 

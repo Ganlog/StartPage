@@ -30,9 +30,6 @@
 			<img id="sett_account" title="Manage your account" src="images/user.png" draggable="false">
 		</div>
 		<div class="detailedSettings">
-			<img id="sett_editBack" title="Edit background" src="images/changeBG.png" draggable="false">
-		</div>
-		<div class="detailedSettings">
 			<img id="sett_editFolders" title="Enable folders edit" src="images/editFolders.png" draggable="false">
 		</div>
 		<div class="detailedSettings">
@@ -62,10 +59,11 @@
 			<div id="w_Upload">
 				<p>Upload image from computer:</p>
 				<input id="w_UploadFILE" type="file" accept="image/*">
-				<p>od add URL address:</p>
+				<p>or add URL address:</p>
 				<input id="w_UploadURL" type="text">
 				<button id="w_UploadURLOK">OK</button>
 			</div>
+			<button id="w_restoreDefBG">Restore default background</button>
 		</div>
 
 		<div id="w_Icon">
@@ -103,6 +101,7 @@
 
 		<div id="w_Account">
 			<p id="w_Username"></p>
+			<button id="w_ChangeBG">Change Background</button></br></br>
 			<button id="w_LogOutButton">Log out</button>
 		</div>
 

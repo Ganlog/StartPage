@@ -3,19 +3,37 @@ users = {
     ajax.onload = function(){
       if(ajax.responseData){
         localStorage["currentUser"] = ajax.responseData;
-        icons.load.size();
-        icons.load.folder(localStorage["lastActiveFolder"] || "Start");
-        folders.load();
+        users.load.userContent();
       }
     }
     ajax.GET("getUser");
   },
-  loadUserContent: function(){
-    icons.load.size();
-    icons.load.folder("Start");
-    folders.load();
-    popupWindow.turnOFF();
+
+  load:{
+    userContent: function(){
+      users.load.background();
+      icons.load.size();
+      icons.load.folder(localStorage["lastActiveFolder"] || "Start");
+      folders.load();
+      popupWindow.turnOFF();
+    },
+
+    background: function(){
+      ajax.onload = function(){
+        if(ajax.responseData)
+          document.body.style.backgroundImage = "url('images/"+ajax.responseData+"')";
+      }
+      ajax.GET("loadBG");
+    },
+
+    defaultBackground: function(){
+      ajax.onload = function(){
+        document.body.style.backgroundImage = "url('images/bg.jpg')";
+      }
+      ajax.POST('restoreDefaultBG');
+    },
   },
+
   removeUserContent: function(){
     localStorage.removeItem("currentUser");
     localStorage.removeItem("lastActiveFolder");
@@ -46,7 +64,7 @@ users = {
     ajax.onload = function(){
       if(ajax.responseData){
         localStorage["currentUser"] = ajax.responseData;
-        users.loadUserContent();
+        users.load.userContent();
       }
     }
     var data = new FormData();
@@ -68,7 +86,7 @@ users = {
     ajax.onload = function(){
       if(ajax.responseData)
         localStorage["currentUser"] = ajax.responseData;
-        users.loadUserContent();
+        users.load.userContent();
     }
     var data = new FormData();
       data.append("user", user);
@@ -80,6 +98,7 @@ users = {
     ajax.onload = function(){
       users.removeUserContent();
       popupWindow.turnON("log-in");
+      document.body.style.backgroundImage = "url('images/bg.jpg')";
     }
     ajax.POST("log-out");
   }
@@ -94,6 +113,6 @@ window.addEventListener('storage', function(event){
     if(event.newValue == null)
       users.logOut();
     else
-      users.loadUserContent();
+      users.load.userContent();
   }
 });
