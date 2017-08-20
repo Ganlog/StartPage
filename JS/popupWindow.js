@@ -39,6 +39,7 @@ popupWindow = {
 				document.getElementById("w_ChangeIconAddress").addEventListener('keyup', function(e){ if(e.keyCode == 13) icons.save.address(iconID, this.value); });
 				document.getElementById("w_ChangeIconAddressOK").addEventListener('click', function(e){ icons.save.address(iconID, document.getElementById("w_ChangeIconAddress").value); });
 				document.getElementById("w_DeleteIkonButton").addEventListener('click', function(){ icons.deleteIcon(iconID); popupWindow.turnOFF(); });
+				tools.addKeyPressedListener(46, function(){ icons.deleteIcon(iconID); popupWindow.turnOFF(); }) // 46 - Del
 			}
 			break;
 

@@ -90,10 +90,14 @@ settings = {
 		document.getElementById("settings").addEventListener('mousedown', function(e){
 			settings.mousedown = true;
 			var inc_decreaseRatio;
+
+			// decide action on mousedown over selected element
 			switch(e.target.id){
 				case "sett_plus": inc_decreaseRatio = 1; break;
 				case "sett_minus": inc_decreaseRatio = -1; break;
 			}
+
+			// change icons size in 20-minisecond interval while mouse is down
 			var inc_decreaseInterval = setInterval(function(){
 				if(inc_decreaseRatio)
 					icons.size += inc_decreaseRatio;
@@ -105,6 +109,8 @@ settings = {
 		});
 		document.getElementById("settings").addEventListener('mouseup', function(e){
 			settings.mousedown = false;
+
+			// decide action on mouseup over selected element
 			switch(e.target.id){
 				case "sett_plus": icons.save.size(); break;
 				case "sett_minus": icons.save.size(); break;

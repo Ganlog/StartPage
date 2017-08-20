@@ -25,6 +25,7 @@ tools = {
 			styleSheet.insertRule(selector+" {"+property+": "+value+"}",0);
 		}
 	},
+
 	generateID: function(){
 		var date = new Date();
 		var year = String(date.getFullYear()).substring(2, 4);
@@ -46,9 +47,33 @@ tools = {
 			newID = parseInt(newID)+1
 		return newID;
 	},
+
+	addKeyPressedListener: function(key, task){
+		this.keyboard.keyFunction["k"+key] = task;
+	},
+	removeKeyPressedListener: function(key){
+		delete this.keyboard.keyFunction["k"+key];
+	},
+	keyboard:{
+		keyPressed: [],
+		keyFunction: [],
+		keyStateListener: (function(){
+			onkeydown = function(e){
+				if(!tools.keyboard.keyPressed["k"+e.keyCode]){
+					tools.keyboard.keyPressed["k"+e.keyCode] = true;
+					console.log(tools.keyboard.keyPressed);
+
+					// execute function assigned to key
+					if(tools.keyboard.keyFunction["k"+e.keyCode])
+						tools.keyboard.keyFunction["k"+e.keyCode]();
+				}
+			};
+			onkeyup = function(e){
+				delete tools.keyboard.keyPressed["k"+e.keyCode];
+			};
+		})(),
+	},
 }
-
-
 
 
 
