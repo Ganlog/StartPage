@@ -60,14 +60,14 @@ popupWindow = {
 
 			case "editBg": {
 				document.getElementById("w_Header").innerHTML = "Background edit:";
-				document.getElementById("w_UploadFILE").addEventListener('change', function(e){ icons.save.bgFILE(e.target.files[0]); });
-				document.getElementById("w_UploadURL").addEventListener('keyup', function(e){ if(e.keyCode == 13) icons.save.bgURL(e.target.value); });
-				document.getElementById("w_UploadURLOK").addEventListener('click', function(e){ icons.save.bgURL(document.getElementById("w_UploadURL").value); });
+				document.getElementById("w_UploadFILE").addEventListener('change', function(e){ users.save.bgFILE(e.target.files[0]); });
+				document.getElementById("w_UploadURL").addEventListener('keyup', function(e){ if(e.keyCode == 13) users.save.bgURL(e.target.value); });
+				document.getElementById("w_UploadURLOK").addEventListener('click', function(e){ users.save.bgURL(document.getElementById("w_UploadURL").value); });
 				document.getElementById("window").addEventListener('dragenter', function(e){ e.preventDefault(); document.getElementById("w_DropUpload").style.display = "block"; });
 				document.getElementById("w_DropUpload").addEventListener('drop', function(e){
 					e.preventDefault();
-					if(e.dataTransfer.files.length != 0)			icons.save.bgFILE(e.dataTransfer.files[0]);
-					if(e.dataTransfer.getData("URL"))			icons.save.bgURL(e.dataTransfer.getData("URL"));
+					if(e.dataTransfer.files.length != 0)			users.save.bgFILE(e.dataTransfer.files[0]);
+					if(e.dataTransfer.getData("URL"))			users.save.bgURL(e.dataTransfer.getData("URL"));
 					document.getElementById("w_DropUpload").style.display = "none";
 				});
 				document.getElementById("w_restoreDefBG").addEventListener('click', function(e){ users.load.defaultBackground(); });
@@ -140,9 +140,10 @@ popupWindow = {
 			windowClone = window.cloneNode(true);
 		window.parentNode.replaceChild(windowClone, window);
 		window.remove();
-
 		window = windowClone;
 		window.removeAttribute("class");
+
+		tools.removeKeyPressedListener(46);
 		document.getElementById("windowBgBlock").removeAttribute("class");
 		document.getElementById("w_UploadURL").value = '';
 		document.getElementById("w_UploadFILE").value = '';

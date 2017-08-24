@@ -21,7 +21,7 @@ users = {
     background: function(){
       ajax.onload = function(){
         if(ajax.responseData)
-          document.body.style.backgroundImage = "url('images/"+ajax.responseData+"')";
+          document.body.style.backgroundImage = "url('images/"+ajax.responseData+"?test')";
       }
       ajax.GET("loadBG");
     },
@@ -32,6 +32,27 @@ users = {
       }
       ajax.POST('restoreDefaultBG');
     },
+  },
+
+  save:{
+    bgFILE: function(file){
+			ajax.onload = function(){
+				if(ajax.responseData)
+					document.body.style.backgroundImage = "url('images/"+ajax.responseData+"')";
+			}
+			var data = new FormData();
+				data.append("image", file);
+			ajax.POST("saveBgFILE", data);
+		},
+		bgURL: function(URL){
+			ajax.onload = function(){
+				if(ajax.responseData)
+					document.body.style.backgroundImage = "url('images/"+ajax.responseData+"')";
+			}
+			var data = new FormData();
+				data.append("URL", URL);
+			ajax.POST("saveBgURL", data);
+		},
   },
 
   removeUserContent: function(){

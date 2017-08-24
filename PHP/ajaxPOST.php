@@ -102,7 +102,7 @@
 		$password = adaptToQuery($_POST["pass"]);
 		$expireTime = time()+(86400*30);
 
-		$hashPass = $db->query("SELECT password FROM users WHERE username = '".$user."'")->fetch_object()->password;
+		$hashPass = @$db->query("SELECT password FROM users WHERE username = '".$user."'")->fetch_object()->password;
 		if(password_verify($password, $hashPass)){
 			$user = $db->query("SELECT username FROM users WHERE username = '".$user."'")->fetch_object()->username; // it is used to get original upper/lowerCases
 			setcookie("user", $user, $expireTime, "/");

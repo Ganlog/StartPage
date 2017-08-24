@@ -66,24 +66,6 @@ icons = {
 				data.append("ID", ID);
 			ajax.POST("saveImageURL", data);
 		},
-		bgFILE: function(file){
-			ajax.onload = function(){
-				if(ajax.responseData)
-					document.body.style.backgroundImage = "url('images/"+ajax.responseData+"?"+tools.generateID()+"')";
-			}
-			var data = new FormData();
-				data.append("image", file);
-			ajax.POST("saveBgFILE", data);
-		},
-		bgURL: function(URL){
-			ajax.onload = function(){
-				if(ajax.responseData)
-					document.body.style.backgroundImage = "url('images/"+ajax.responseData+"?"+tools.generateID()+"')";
-			}
-			var data = new FormData();
-				data.append("URL", URL);
-			ajax.POST("saveBgURL", data);
-		},
 	},
 	load:{
 		size: function(){

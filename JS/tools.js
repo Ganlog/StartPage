@@ -61,7 +61,6 @@ tools = {
 			onkeydown = function(e){
 				if(!tools.keyboard.keyPressed["k"+e.keyCode]){
 					tools.keyboard.keyPressed["k"+e.keyCode] = true;
-					console.log(tools.keyboard.keyPressed);
 
 					// execute function assigned to key
 					if(tools.keyboard.keyFunction["k"+e.keyCode])
