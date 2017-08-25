@@ -44,7 +44,7 @@
 		}
 		$user = adaptToQuery($_COOKIE["user"]);
 		$sessID = adaptToQuery($_COOKIE["sessID"]);
-		$sessVerify = mysqli_num_rows($db->query("SELECT username FROM sessions WHERE username = '".$user."' AND sessionID = '".$sessID."'"));
+		$sessVerify = mysqli_num_rows($db->query("SELECT userID FROM sessions WHERE userID = '".$user."' AND sessionID = '".$sessID."'"));
 
 		if(!$sessVerify){
 			$response->responseData = "log-in";
@@ -61,31 +61,40 @@
 
 
 	if(isset($_REQUEST['sign-up'])){
-		$user = adaptToQuery($_POST["user"]);
+		$usernameRaw = $_POST["user"]; // id allows to return username with ', " and \ symbols in name
+		$username = adaptToQuery($_POST["user"]);
+		$user = time();
 		$password = adaptToQuery($_POST["pass"]);
 		$passEncrypted = password_hash($password, PASSWORD_BCRYPT);
 		$expireTime = time()+(86400*30);
 
-		if(strlen($user) > 30){
-			$response->error = "Maximum length of username is 30. Your username has ".strlen($user)." characters";
+		if(strlen($username) > 30){
+			$response->error = "Maximum length of username is 30. Your username has ".strlen($username)." characters";
 			respond();
 		}
 
-		// check if this username already exists in database
-		$checkUser = mysqli_num_rows($db->query("SELECT username FROM users WHERE username = '".$user."'"));
-		if(!$checkUser){
-			$db->query("INSERT INTO users SET username = '".$user."', password = '".$passEncrypted."'");
+		// while user with this userID exists add 1 and check again
+		while(mysqli_num_rows($db->query("SELECT userID FROM users WHERE userID = '".$user."'")))
+			$user++;
+
+		// if username is already taken
+		if(mysqli_num_rows($db->query("SELECT username FROM users WHERE username = '".$username."'")))
+			$response->error = "User with this username already exists";
+		else{
+			$db->query("INSERT INTO users SET userID = '".$user."', username = '".$username."', password = '".$passEncrypted."'");
 			setcookie("user", $user, $expireTime, "/");
 
 			$sessID = str_shuffle(password_hash($user.time(), PASSWORD_BCRYPT));
-			$db->query("INSERT INTO sessions SET username = '".$user."', sessionID = '".$sessID."', expireTime = '".$expireTime."'");
+			$db->query("INSERT INTO sessions SET userID = '".$user."', sessionID = '".$sessID."', expireTime = '".$expireTime."'");
 			setcookie("sessID", $sessID, $expireTime, "/");
 
-			$response->log = "Registered as '".$user."'";
-			$response->responseData = $user;
+			$response->log = "Registered as '".$usernameRaw."'";
+
+			$resp = array();
+				array_push($resp, $user);
+				array_push($resp, $username);
+			$response->responseData = $resp;
 		}
-		else
-			$response->error = "User with this username already exists";
 		respond();
 	}
 
@@ -98,21 +107,24 @@
 
 
 	if(isset($_REQUEST['log-in'])){
-		$user = adaptToQuery($_POST["user"]);
+		$username = adaptToQuery($_POST["user"]);
 		$password = adaptToQuery($_POST["pass"]);
 		$expireTime = time()+(86400*30);
 
-		$hashPass = @$db->query("SELECT password FROM users WHERE username = '".$user."'")->fetch_object()->password;
+		$hashPass = @$db->query("SELECT password FROM users WHERE username = '".$username."'")->fetch_object()->password;
 		if(password_verify($password, $hashPass)){
-			$user = $db->query("SELECT username FROM users WHERE username = '".$user."'")->fetch_object()->username; // it is used to get original upper/lowerCases
-			setcookie("user", $user, $expireTime, "/");
+			$user = $db->query("SELECT userID FROM users WHERE username = '".$username."'")->fetch_object()->userID; // it is used to get original upper/lowerCases
+			setcookie("user", $userID, $expireTime, "/");
 
 			$sessID = str_shuffle(password_hash($user.time(), PASSWORD_BCRYPT));
-			$db->query("INSERT INTO sessions SET username = '".$user."', sessionID = '".$sessID."', expireTime = '".$expireTime."'");
+			$db->query("INSERT INTO sessions SET userID = '".$user."', sessionID = '".$sessID."', expireTime = '".$expireTime."'");
 			setcookie("sessID", $sessID, $expireTime, "/");
 
-			$response->log = "Logged in as '".$user."'";
-			$response->responseData = $user;
+			$response->log = "Logged in as '".$username."'";
+			$resp = array();
+				array_push($resp, $user);
+				array_push($resp, $username);
+			$response->responseData = $resp;
 		}
 		else
 			$response->error = "Wrong login or password. Try again";
@@ -148,12 +160,21 @@
 		$folder = adaptToQuery($_POST["folder"]);
 		$URL = adaptToQuery($_POST["URL"]);
 
-		$folderCount = $db->query("SELECT COUNT(*) AS count FROM iconsorder WHERE username = '".$user."' AND folder = '".$folder."'")->fetch_object()->count;
+		if(strlen($URL) > 500){
+			$response->error = 'URL is too long. Please shorten it by using for example "Google URL Shortener"';
+			respond();
+		}
 
-		$db->query("INSERT INTO iconsorder SET username = '".$user."', orderID = '".$folderCount."', ID = '".$ID."', folder = '".$folder."'");
+		// prevent from adding icon with ID of already existing icon
+		while(mysqli_num_rows($db->query("SELECT ID FROM icons WHERE ID = '".$ID."'")))
+			$ID++;
+
+		$iconsInFolderCount = $db->query("SELECT COUNT(*) AS count FROM iconsorder WHERE userID = '".$user."' AND folder = '".$folder."'")->fetch_object()->count;
+		$db->query("INSERT INTO iconsorder SET userID = '".$user."', orderID = '".$iconsInFolderCount."', ID = '".$ID."', folder = '".$folder."'");
 		$db->query("INSERT INTO icons SET ID = '".$ID."', URL = '".$URL."'");
 
 		$response->log = "Icon added to folder '".$folder."'";
+		$response->responseData = $ID;
 		respond();
 	}
 
@@ -167,7 +188,7 @@
 
 	if(isset($_REQUEST['deleteIcon'])){
 		$ID = adaptToQuery($_POST["ID"]);
-		$folder = $db->query("SELECT folder FROM iconsorder WHERE username = '".$user."' AND ID = '".$ID."'")->fetch_object()->folder;
+		$folder = $db->query("SELECT folder FROM iconsorder WHERE userID = '".$user."' AND ID = '".$ID."'")->fetch_object()->folder;
 
 		deleteWithOrderIdDecrease("iconsorder", "ID", $ID, "folder", $folder);	// delete icon with selected "ID" and "folder" from table "iconsorder", and decrease every next "orderID" by 1
 
@@ -199,7 +220,7 @@
 			for($i=0; $i<count($newOrder); $i++){
 				$db->query("
 					UPDATE iconsorder SET ID = '".adaptToQuery($newOrder[$i])."'
-					WHERE username = '".$user."' AND orderID = ".$i." AND folder = '".$folder."'
+					WHERE userID = '".$user."' AND orderID = ".$i." AND folder = '".$folder."'
 				");
 			}
 			$response->log = "Icons order in folder '".$folder."' saved";
@@ -236,7 +257,7 @@
 
 
 	if(isset($_REQUEST['saveSize'])){
-		$db->query("UPDATE settings SET iconSize = ".adaptToQuery($_POST["size"])." WHERE username = '".$user."'");
+		$db->query("UPDATE settings SET iconSize = ".adaptToQuery($_POST["size"])." WHERE userID = '".$user."'");
 		$response->log = "Icons size saved";
 		respond();
 	}
@@ -250,10 +271,10 @@
 
 
 	if(isset($_REQUEST['restoreDefaultBG'])){
-		$BG = $db->query("SELECT background FROM settings WHERE username = '".$user."'")->fetch_object()->background; //check if user has his own custom background image
+		$BG = $db->query("SELECT background FROM settings WHERE userID = '".$user."'")->fetch_object()->background; //check if user has his own custom background image
 		if($BG != 0){
 			@unlink("../images/bg/".$BG.".jpg");
-			$db->query("UPDATE settings SET background = 0 WHERE username = '".$user."'");
+			$db->query("UPDATE settings SET background = 0 WHERE userID = '".$user."'");
 			$response->log = "Custom background removed";
 		}
 		else
@@ -277,7 +298,7 @@
 		else{
 			$image = $_FILES["image"];
 			$path = "../images/bg/";
-			$BG = $db->query("SELECT background FROM settings WHERE username = '".$user."'")->fetch_object()->background; //check if user has his own custom background image
+			$BG = $db->query("SELECT background FROM settings WHERE userID = '".$user."'")->fetch_object()->background; //check if user has his own custom background image
 			$filename = ($BG != 0) ? $BG : time(); // if he has -> get its name, and if not -> generate new name
 
 			switch($image["type"]){
@@ -291,7 +312,7 @@
 			}
 			if($extension){
 				if (move_uploaded_file($image["tmp_name"], $path.$filename.$extension)){
-					$db->query("UPDATE settings SET background = ".$filename." WHERE username = '".$user."'");
+					$db->query("UPDATE settings SET background = ".$filename." WHERE userID = '".$user."'");
 					$response->responseData = $path.$filename.$extension;
 					$response->log = "Background image saved";
 				}
@@ -317,7 +338,7 @@
 		else{
 			$image = $_FILES["image"];
 			$path = "../images/icons/";
-			$filename = adaptToQuery($image["name"]);
+			$ID = adaptToQuery($image["name"]);
 
 			switch($image["type"]){
 				case 'image/jpeg':
@@ -333,13 +354,14 @@
 					$response->error = "Incorrect file extension";
 			}
 			if(@$extension){
-				if(file_exists($path.$filename.".jpg"))		unlink($path.$filename.".jpg");
-				if(file_exists($path.$filename.".png"))		unlink($path.$filename.".png");
-				if(file_exists($path.$filename.".gif"))		unlink($path.$filename.".gif");
+				if(file_exists($path.$ID.".jpg"))		unlink($path.$ID.".jpg");
+				if(file_exists($path.$ID.".png"))		unlink($path.$ID.".png");
+				if(file_exists($path.$ID.".gif"))		unlink($path.$ID.".gif");
 
-				if (move_uploaded_file($image["tmp_name"], $path.$filename.$extension)){
-					$db->query("UPDATE icons SET image = '".$filename.$extension."' WHERE ID = '".$filename."'");
-					$response->log = "Image ".$filename.$extension." saved";
+				if (move_uploaded_file($image["tmp_name"], $path.$ID.$extension)){
+					$db->query("UPDATE icons SET imageExt = '".$extension."?".time()."' WHERE ID = '".$ID."'");
+					$response->log = "Image ".$ID.$extension." saved";
+					$response->responseData = $ID.$extension."?".time();
 				}
 				else
 					$response->error = "Error occurred while saving image, probably access privileges on server are incorrect";
@@ -359,7 +381,7 @@
 	if(isset($_REQUEST['saveBgURL'])){
 		$URL = $_POST["URL"];
 		$path = "../images/bg/";
-		$BG = $db->query("SELECT background FROM settings WHERE username = '".$user."'")->fetch_object()->background; //check if user has his own custom background image
+		$BG = $db->query("SELECT background FROM settings WHERE userID = '".$user."'")->fetch_object()->background; //check if user has his own custom background image
 		$filename = ($BG != 0) ? $BG : time(); // if he has -> get its name, and if not -> generate new name
 
 
@@ -391,7 +413,7 @@
 			//if(imagejpeg( imagecreatefromstring(file_get_contents($path.$filename.".tmp"))  ,  $path.$filename.$extension))    // <- change .jpg, .png and .gif format to .jpg
 			if(@copy($path.$filename.".tmp",  $path.$filename.$extension)){			// <- save .jpg, .png and .gif with extension .jpg without changing format and if succeded
 				if($BG == 0)
-					$db->query("UPDATE settings SET background = ".$filename." WHERE username = '".$user."'");
+					$db->query("UPDATE settings SET background = ".$filename." WHERE userID = '".$user."'");
 
 				$response->responseData = $path.$filename.$extension;
 				$response->log = "Background saved";
@@ -414,9 +436,9 @@
 	if(isset($_REQUEST['saveImageURL'])){
 		$URL = $_POST["URL"];
 		$path = "../images/icons/";
-		$filename = adaptToQuery($_POST["ID"]);
+		$ID = adaptToQuery($_POST["ID"]);
 
-		$tmpFile = fopen($path.$filename.".tmp", 'w+');        	 	// temporarly save file to server with .tmp extension
+		$tmpFile = fopen($path.$ID.".tmp", 'w+');        	 	// temporarly save file to server with .tmp extension
 		$cURL = curl_init($URL);
 		curl_setopt($cURL, CURLOPT_FILE, $tmpFile);								// put to temp file
 		curl_setopt($cURL, CURLOPT_FOLLOWLOCATION, 1);
@@ -441,23 +463,23 @@
 			break;
 			default:
 				$response->info = "Wrong file extension or host problem. Try to save image on your computer, and add it from file";
-				@unlink($path.$filename.".tmp");
+				@unlink($path.$ID.".tmp");
 				$extension = '';
 		}
 
 		if($extension){
-			if(file_exists($path.$filename.".jpg"))		unlink($path.$filename.".jpg");
-			if(file_exists($path.$filename.".png"))		unlink($path.$filename.".png");
-			if(file_exists($path.$filename.".gif"))		unlink($path.$filename.".gif");
+			if(file_exists($path.$ID.".jpg"))		unlink($path.$ID.".jpg");
+			if(file_exists($path.$ID.".png"))		unlink($path.$ID.".png");
+			if(file_exists($path.$ID.".gif"))		unlink($path.$ID.".gif");
 
-			if(@copy($path.$filename.".tmp",  $path.$filename.$extension)){
-				$db->query("UPDATE icons SET image='".$filename.$extension."' WHERE ID='".$filename."'");
-				$response->log = "Image ".$filename.$extension." saved";
+			if(@copy($path.$ID.".tmp",  $path.$ID.$extension)){
+				$db->query("UPDATE icons SET imageExt = '".$extension."?".time()."' WHERE ID = '".$ID."'");
+				$response->log = "Image ".$ID.$extension." saved";
 			}
 			else
 				$response->error = "Error occurred while saving background image, probably access privileges on server are incorrect";
 		}
-		@unlink($path.$filename.".tmp");
+		@unlink($path.$ID.".tmp");
 		respond();
 	}
 
@@ -485,8 +507,8 @@
 			respond();
 		}
 
-		$foldersCount = $db->query("SELECT COUNT(*) AS count FROM folders WHERE username = '".$user."'")->fetch_object()->count;
-		$db->query("INSERT INTO folders SET username = '".$user."', orderID = ".$foldersCount.", name = '".$name."'");
+		$foldersCount = $db->query("SELECT COUNT(*) AS count FROM folders WHERE userID = '".$user."'")->fetch_object()->count;
+		$db->query("INSERT INTO folders SET userID = '".$user."', orderID = ".$foldersCount.", name = '".$name."'");
 		$response->log = "Folder '".$name."' added";
 		respond();
 	}
@@ -542,7 +564,7 @@
 					deleteWithOrderIdDecrease("folders", "name", $oldName);	// delete folder with selected "name" from table "folders", and decrease every next "orderID" by 1
 				}
 				else{
-					$db->query("UPDATE folders SET name = '".$newName."' WHERE username = '".$user."' AND name = '".$oldName."'");
+					$db->query("UPDATE folders SET name = '".$newName."' WHERE userID = '".$user."' AND name = '".$oldName."'");
 					$response->log = "Folder renamed from '".$oldName."' to '".$newName."'";
 				}
 			}
@@ -566,8 +588,8 @@
 		$ID = adaptToQuery($_POST["ID"]);
 		$newFolder = adaptToQuery($_POST["folder"]);
 		// if folder with this name exist
-		if(($db->query("SELECT name FROM folders WHERE username = '".$user."' AND name = '".$newFolder."'")->fetch_object()) || ($newFolder == "BIN")){
-			$oldFolder = $db->query("SELECT folder FROM iconsorder WHERE username = '".$user."' AND ID = '".$ID."'")->fetch_object()->folder;
+		if(($db->query("SELECT name FROM folders WHERE userID = '".$user."' AND name = '".$newFolder."'")->fetch_object()) || ($newFolder == "BIN")){
+			$oldFolder = $db->query("SELECT folder FROM iconsorder WHERE userID = '".$user."' AND ID = '".$ID."'")->fetch_object()->folder;
 
 			if(strtoupper($newFolder) == strtoupper($oldFolder)){
 				$response->info = "Selected icon is already in this folder";
@@ -575,15 +597,15 @@
 			}
 			else{
 				// decrease every next "orderID" by 1
-					$oldfolderCount = $db->query("SELECT COUNT(*) AS count FROM iconsorder WHERE username = '".$user."' AND folder = '".$oldFolder."'")->fetch_object()->count;
-					$orderID = $db->query("SELECT orderID FROM iconsorder WHERE username = '".$user."' AND ID = '".$ID."'")->fetch_object()->orderID;
+					$oldfolderCount = $db->query("SELECT COUNT(*) AS count FROM iconsorder WHERE userID = '".$user."' AND folder = '".$oldFolder."'")->fetch_object()->count;
+					$orderID = $db->query("SELECT orderID FROM iconsorder WHERE userID = '".$user."' AND ID = '".$ID."'")->fetch_object()->orderID;
 					for($i = $orderID+1; $i < $oldfolderCount; $i++){
-						$db->query("UPDATE iconsorder SET orderID = orderID-1 WHERE username = '".$user."' AND orderID = ".$i." AND folder = '".$oldFolder."'");
+						$db->query("UPDATE iconsorder SET orderID = orderID-1 WHERE userID = '".$user."' AND orderID = ".$i." AND folder = '".$oldFolder."'");
 					}
 
 				// and then move selected icon to the end of a new folder
-					$newfolderCount = $db->query("SELECT COUNT(*) AS count FROM iconsorder WHERE username = '".$user."' AND folder = '".$newFolder."'")->fetch_object()->count;
-					$db->query("UPDATE iconsorder SET orderID = ".$newfolderCount.", folder = '".$newFolder."' WHERE username = '".$user."' AND ID = '".$ID."'");
+					$newfolderCount = $db->query("SELECT COUNT(*) AS count FROM iconsorder WHERE userID = '".$user."' AND folder = '".$newFolder."'")->fetch_object()->count;
+					$db->query("UPDATE iconsorder SET orderID = ".$newfolderCount.", folder = '".$newFolder."' WHERE userID = '".$user."' AND ID = '".$ID."'");
 
 				$response->log = "Icon moved to folder '".$newFolder."'";
 				if($newFolder == "BIN") $response->log = "Icon moved to bin";
@@ -613,7 +635,7 @@
 			for($i=0; $i<count($newOrder); $i++){
 				$db->query("
 					UPDATE folders SET name = '".adaptToQuery($newOrder[$i])."'
-					WHERE username = '".$user."' AND orderID = ".$i
+					WHERE userID = '".$user."' AND orderID = ".$i
 				);
 			}
 			$response->log = "Folders order saved";
@@ -646,20 +668,20 @@
 		// finding number of elements matching query
 			$selectedCount = $db->query(
 				"SELECT COUNT(*) AS count FROM ".$tableName." ".
-				"WHERE username = '".$user."' ".
+				"WHERE userID = '".$user."' ".
 				(($detailColumnName) ? "AND ".$detailColumnName." = '".$detailValue."'" : '')
 			)->fetch_object()->count;
 
 		// get orderID of deleted element
-			$orderID = $db->query("SELECT orderID FROM ".$tableName." WHERE username = '".$user."' AND ".$columnName." = '".$value."'")->fetch_object()->orderID;
+			$orderID = $db->query("SELECT orderID FROM ".$tableName." WHERE userID = '".$user."' AND ".$columnName." = '".$value."'")->fetch_object()->orderID;
 
 		// delete element
-			$db->query("DELETE FROM ".$tableName." WHERE username = '".$user."' AND ".$columnName." = '".$value."'");
+			$db->query("DELETE FROM ".$tableName." WHERE userID = '".$user."' AND ".$columnName." = '".$value."'");
 
 		// decreasing every next "orderID" by 1
 			for($i = $orderID+1; $i < $selectedCount; $i++){
 				$db->query(
-					"UPDATE ".$tableName." SET orderID = orderID-1 WHERE username = '".$user."' AND orderID = ".$i." ".
+					"UPDATE ".$tableName." SET orderID = orderID-1 WHERE userID = '".$user."' AND orderID = ".$i." ".
 					(($detailColumnName) ? "AND ".$detailColumnName." = '".$detailValue."'" : '')
 				);
 			}
@@ -673,7 +695,7 @@
 		$array = array();
 		$results = $db->query(
 			"SELECT ".$columnName." FROM ".$tableName." ".
-			"WHERE username = '".$user."' ".
+			"WHERE userID = '".$user."' ".
 			(($detailColumnName) ? "AND ".$detailColumnName." = '".$detailValue."'" : '')
 		);
 
@@ -689,13 +711,13 @@
 		global $db, $user;
 		$oldFolder = adaptToQuery($oldFolder);
 		$newFolder = adaptToQuery($newFolder);
-		$newFolderCount = adaptToQuery($db->query("SELECT COUNT(*) AS count FROM iconsorder WHERE username = '".$user."' AND folder = '".$newFolder."'")->fetch_object()->count);
+		$newFolderCount = adaptToQuery($db->query("SELECT COUNT(*) AS count FROM iconsorder WHERE userID = '".$user."' AND folder = '".$newFolder."'")->fetch_object()->count);
 
 		$iconsInOldFolder = array();
-		$results = $db->query("SELECT ID FROM iconsorder WHERE username = '".$user."' AND folder = '".$oldFolder."'");
+		$results = $db->query("SELECT ID FROM iconsorder WHERE userID = '".$user."' AND folder = '".$oldFolder."'");
 		while($row = $results->fetch_object()){
 			$ID = $row->ID;
-			$db->query("UPDATE iconsorder SET orderID = ".$newFolderCount++.", folder = '".$newFolder."' WHERE username = '".$user."' AND ID = '".$ID."'");
+			$db->query("UPDATE iconsorder SET orderID = ".$newFolderCount++.", folder = '".$newFolder."' WHERE userID = '".$user."' AND ID = '".$ID."'");
 		}
 	}
 

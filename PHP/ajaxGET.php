@@ -49,44 +49,45 @@
 	//creating nessesary tables if they doesn't exist
 	$db->query("
 		CREATE TABLE IF NOT EXISTS icons (
-			ID bigint(15) PRIMARY KEY,
+			ID bigint PRIMARY KEY,
 			URL varchar(500) NOT NULL,
-			image varchar(20) NOT NULL
+			imageExt varchar(20) NOT NULL
 		) DEFAULT CHARSET=utf8;
 	");
 	$db->query("
 		CREATE TABLE IF NOT EXISTS iconsorder (
-			username varchar(30) NOT NULL,
-			orderID int(10) NOT NULL,
-			ID bigint(15) NOT NULL,
+			userID bigint NOT NULL,
+			orderID int NOT NULL,
+			ID bigint NOT NULL,
 			folder varchar(30) NOT NULL
 		) DEFAULT CHARSET=utf8;
 	");
 	$db->query("
 		CREATE TABLE IF NOT EXISTS settings (
-			username varchar(30) NOT NULL,
-			iconSize int(10) NOT NULL,
+			userID bigint NOT NULL,
+			iconSize int NOT NULL,
 			background bigint(20) NOT NULL
 		) DEFAULT CHARSET=utf8;
 	");
 	$db->query("
 		CREATE TABLE IF NOT EXISTS folders (
-			username varchar(30) NOT NULL,
-			orderID int(10) NOT NULL,
+			userID bigint NOT NULL,
+			orderID int NOT NULL,
 			name varchar(30) NOT NULL
 		) DEFAULT CHARSET=utf8;
 	");
 	$db->query("
 		CREATE TABLE IF NOT EXISTS users (
-			username varchar(30) PRIMARY KEY,
+			userID bigint PRIMARY KEY,
+			username varchar(30) NOT NULL,
 			password varchar(60) NOT NULL
 		) DEFAULT CHARSET=utf8;
 	");
 	$db->query("
 		CREATE TABLE IF NOT EXISTS sessions (
-			username varchar(30) NOT NULL,
+			userID bigint NOT NULL,
 			sessionID varchar(60) NOT NULL,
-  		expireTime bigint(20) NOT NULL
+  		expireTime bigint NOT NULL
 		) DEFAULT CHARSET=utf8;
 	");
 
@@ -105,7 +106,7 @@
 	}
 	$user = adaptToQuery($_COOKIE["user"]);
 	$sessID = adaptToQuery($_COOKIE["sessID"]);
-	$sessVerify = mysqli_num_rows($db->query("SELECT username FROM sessions WHERE username = '".$user."' AND sessionID = '".$sessID."'"));
+	$sessVerify = mysqli_num_rows($db->query("SELECT userID FROM sessions WHERE userID = '".$user."' AND sessionID = '".$sessID."'"));
 
 	if(!$sessVerify){
 		$response->responseData = "log-in";
@@ -123,14 +124,23 @@
 	if(isset($_REQUEST['getUser'])){
 		$expireTime = time()+(86400*30);
 		setcookie("user", $user, $expireTime, "/"); // extend lifespan of cookie by another 30 days (86400s = 1 day)
+
 		$newSessID = str_shuffle(password_hash($sessID, PASSWORD_BCRYPT));
+
+		// if by some miracle in dastabase exists session with sessionID == newSessionID, generate new newSessionID
+		while(@mysqli_num_rows("SELECT sessionID FROM sessions WHERE sessionID = '".$newSessID."'"))
+			$newSessID = str_shuffle($newSessID);
+
 		$db->query("UPDATE sessions SET sessionID = '".$newSessID."', expireTime = '".$expireTime."' WHERE sessionID = '".$sessID."'");
 		setcookie("sessID", $newSessID, $expireTime, "/"); // set new sessionID cookie for another 30 days
 
 		// delete unactive sessions older than 30 days
 		$db->query("DELETE FROM sessions WHERE expireTime < '".time()."'");
 
-		$response->responseData = $user;
+		$resp = array();
+			array_push($resp, $user);
+			array_push($resp, $db->query("SELECT username FROM users WHERE userID = '".$user."'")->fetch_object()->username);
+		$response->responseData = $resp;
 		respond();
 	}
 
@@ -143,10 +153,10 @@
 
 
 	if(isset($_REQUEST['loadSize'])){
-		$iconSize = @$db->query("SELECT iconSize FROM settings WHERE username = '".$user."'")->fetch_object()->iconSize; // if iconSize is saved in database, get it
+		$iconSize = @$db->query("SELECT iconSize FROM settings WHERE userID = '".$user."'")->fetch_object()->iconSize; // if iconSize is saved in database, get it
 		if($iconSize == 0){		// otherwise set value and save it to database
 			$iconSize = 100;
-			$db->query("INSERT INTO settings SET username = '".$user."', iconSize = ".$iconSize);
+			$db->query("INSERT INTO settings SET userID = '".$user."', iconSize = ".$iconSize);
 		}
 		$response->responseData = $iconSize;
 		respond();
@@ -161,7 +171,7 @@
 
 
 	if(isset($_REQUEST['loadBG'])){
-		$BG = @$db->query("SELECT background FROM settings WHERE username = '".$user."'")->fetch_object()->background;
+		$BG = @$db->query("SELECT background FROM settings WHERE userID = '".$user."'")->fetch_object()->background;
 		if($BG == 0)
 			$response->responseData = "bg.jpg";
 		else
@@ -184,17 +194,17 @@
 		}while(count(array_unique($iconsInDB))<count($iconsInDB));	// repeat while there are no duplicates (they apear sometimes for a short time while changing order)
 
 		$results = $db->query("
-			SELECT icons.ID, icons.URL, icons.image
+			SELECT icons.ID, icons.URL, icons.imageExt
 			FROM iconsorder
 			INNER JOIN icons ON icons.ID = iconsorder.ID
-			WHERE username = '".$user."' AND folder = '".$folder."'
+			WHERE userID = '".$user."' AND folder = '".$folder."'
 			ORDER BY iconsorder.orderID ASC
 		");
 
 		while($row = $results->fetch_object()){
 			array_push($icons->ID, $row->ID);
 			array_push($icons->URL, $row->URL);
-			array_push($icons->image, $row->image);
+			array_push($icons->image, $row->ID.$row->imageExt);
 		}
 		$icons->count = mysqli_num_rows($results);
 
@@ -215,7 +225,7 @@
 
 	if(isset($_REQUEST['loadFolders'])){
 		$foldersList = array();
-		$results = $db->query("SELECT name FROM folders WHERE username = '".$user."' ORDER BY orderID ASC");
+		$results = $db->query("SELECT name FROM folders WHERE userID = '".$user."' ORDER BY orderID ASC");
 		$foldersCount = mysqli_num_rows($results);
 
 		if($foldersCount){	// if some folders exist, write their names to array 'foldersList'
@@ -223,7 +233,7 @@
 				array_push($foldersList, $row->name);
 		}
 		else{	// if no folder exists, add folder "Start"
-			$db->query("INSERT INTO folders SET username = '".$user."', orderID = 0, name = 'Start'");
+			$db->query("INSERT INTO folders SET userID = '".$user."', orderID = 0, name = 'Start'");
 			array_push($foldersList, 'start');
 		}
 
@@ -242,8 +252,8 @@
 
 	if(isset($_REQUEST['loadImage'])){
 		$ID = adaptToQuery($_REQUEST['loadImage']);
-		$image = $db->query("SELECT image FROM icons WHERE ID = '".$ID."'")->fetch_object()->image;
-		$response->responseData = $image;
+		$imageExt = $db->query("SELECT imageExt FROM icons WHERE ID = '".$ID."'")->fetch_object()->imageExt;
+		$response->responseData = $ID.$imageExt;
 		respond();
 	}
 
@@ -269,7 +279,7 @@
 
 		$results = $db->query(
 			"SELECT ".$columnName." FROM ".$tableName." ".
-			"WHERE username = '".$user."' ".
+			"WHERE userID = '".$user."' ".
 			(($detailColumnName) ? "AND ".$detailColumnName." = '".$detailValue."'" : '')
 		);
 

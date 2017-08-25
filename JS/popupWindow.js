@@ -104,7 +104,7 @@ popupWindow = {
 
 			case "manageAccount": {
 				document.getElementById("w_Header").innerHTML = "Manage account:";
-				document.getElementById("w_Username").innerHTML = localStorage['currentUser'];
+				document.getElementById("w_Username").innerHTML = localStorage["currentUser"].split(",")[1]; // get username
 				document.getElementById("w_ChangeBG").addEventListener('click', function(){ popupWindow.turnON("editBg"); });
 				document.getElementById("w_LogOutButton").addEventListener('click', function(){ users.logOut(); });
 			}

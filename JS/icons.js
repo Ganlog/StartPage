@@ -19,12 +19,13 @@ icons = {
 		},
 		icon: function(ID, URL){
 			ajax.onload = function(){
-				//todo -> correct ID inserted to database is under response.responseData
-				//todo -> ID = response.responseData
-				icons.add(ID, URL);
-				icons.arrange();
-				icons.selected = ID;
-				popupWindow.turnON("uploadImage");
+				if(ajax.responseData){
+					ID = ajax.responseData;
+					icons.add(ID, URL);
+					icons.arrange();
+					icons.selected = ID;
+					popupWindow.turnON("uploadImage");
+				}
 			}
 			var data = new FormData();
 				data.append("ID", ID);
@@ -51,7 +52,10 @@ icons = {
 		},
 		imageFILE: function(ID, file){
 			ajax.onload = function(){
-				icons.load.image(ID);
+				if(ajax.responseData){
+					icons.list[ID].img.src = "images/icons/"+ajax.responseData;
+					popupWindow.turnOFF();
+				}
 			}
 			var data = new FormData();
 				data.append("image", file, ID);
@@ -59,7 +63,10 @@ icons = {
 		},
 		imageURL: function(ID, URL){
 			ajax.onload = function(){
-				icons.load.image(ID);
+				if(ajax.responseData){
+					icons.list[ID].img.src = "images/icons/"+ajax.responseData;
+					popupWindow.turnOFF();
+				}
 			}
 			var data = new FormData();
 				data.append("URL", URL);
@@ -96,16 +103,6 @@ icons = {
 				}
 			}
 			ajax.GET("loadFolderContent", folder);
-		},
-		image: function(ID){
-			ajax.onload = function(){
-				if(ajax.responseData){
-					icons.list[ID].img.src = "images/icons/"+ajax.responseData+"?"+tools.generateID();
-					if(document.getElementsByClassName("uploadImage")[0])
-						popupWindow.turnOFF();
-				}
-			}
-			ajax.GET("loadImage", ID);
 		},
 	},
 	edit:{
