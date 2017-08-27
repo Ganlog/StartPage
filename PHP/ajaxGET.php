@@ -188,7 +188,16 @@
 
 
 	if(isset($_REQUEST['loadFolderContent'])){
+		$folderRaw = $_REQUEST['loadFolderContent'];
 		$folder = adaptToQuery($_REQUEST['loadFolderContent']);
+
+		$folderInDB = @$db->query("SELECT name FROM folders WHERE userID = '".$user."' AND name = '".$folder."'")->fetch_object()->name;
+		if(!$folderInDB){
+			$response->error = "Folder '".$folder."' doesn't exist anymore.";
+			$response->responseData = "reload";
+			respond();
+		}
+
 		do{
 			$iconsInDB = selectColumnToArray("iconsorder", "ID", "folder", $folder);		// writes to array elements from column "ID" of "iconsorder" table, for selected value in column "folder"
 		}while(count(array_unique($iconsInDB))<count($iconsInDB));	// repeat while there are no duplicates (they apear sometimes for a short time while changing order)
@@ -204,12 +213,12 @@
 		while($row = $results->fetch_object()){
 			array_push($icons->ID, $row->ID);
 			array_push($icons->URL, $row->URL);
-			array_push($icons->image, $row->ID.$row->imageExt);
+			array_push($icons->image, ($row->imageExt) ? $row->ID.$row->imageExt : '');
 		}
 		$icons->count = mysqli_num_rows($results);
 
 		$response->responseData = $icons;
-		$response->log = "Loaded content of folder: '".$folder."'";
+		$response->log = "Loaded content of folder: '".$folderRaw."'";
 		if($folder == "BIN")
 			$response->log = "Loaded content of bin";
 		respond();
@@ -226,9 +235,9 @@
 	if(isset($_REQUEST['loadFolders'])){
 		$foldersList = array();
 		$results = $db->query("SELECT name FROM folders WHERE userID = '".$user."' ORDER BY orderID ASC");
-		$foldersCount = mysqli_num_rows($results);
+		$foldersNum = mysqli_num_rows($results);
 
-		if($foldersCount){	// if some folders exist, write their names to array 'foldersList'
+		if($foldersNum){	// if some folders exist, write their names to array 'foldersList'
 			while($row = $results->fetch_object())
 				array_push($foldersList, $row->name);
 		}

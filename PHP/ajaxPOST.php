@@ -111,7 +111,7 @@
 		$password = adaptToQuery($_POST["pass"]);
 		$expireTime = time()+(86400*30);
 
-		$hashPass = @$db->query("SELECT password FROM users WHERE username = '".$username."'")->fetch_object()->password;
+		$hashPass = $db->query("SELECT password FROM users WHERE username = '".$username."'")->fetch_object()->password;
 		if(password_verify($password, $hashPass)){
 			$user = $db->query("SELECT userID FROM users WHERE username = '".$username."'")->fetch_object()->userID; // it is used to get original upper/lowerCases
 			setcookie("user", $userID, $expireTime, "/");
@@ -169,8 +169,8 @@
 		while(mysqli_num_rows($db->query("SELECT ID FROM icons WHERE ID = '".$ID."'")))
 			$ID++;
 
-		$iconsInFolderCount = $db->query("SELECT COUNT(*) AS count FROM iconsorder WHERE userID = '".$user."' AND folder = '".$folder."'")->fetch_object()->count;
-		$db->query("INSERT INTO iconsorder SET userID = '".$user."', orderID = '".$iconsInFolderCount."', ID = '".$ID."', folder = '".$folder."'");
+		$folderIconsNum = $db->query("SELECT COUNT(*) AS count FROM iconsorder WHERE userID = '".$user."' AND folder = '".$folder."'")->fetch_object()->count;
+		$db->query("INSERT INTO iconsorder SET userID = '".$user."', orderID = '".$folderIconsNum."', ID = '".$ID."', folder = '".$folder."'");
 		$db->query("INSERT INTO icons SET ID = '".$ID."', URL = '".$URL."'");
 
 		$response->log = "Icon added to folder '".$folder."'";
@@ -226,7 +226,7 @@
 			$response->log = "Icons order in folder '".$folder."' saved";
 		}
 		else{
-			$response->error = "Icons sent to server were different than in database. Page should reload in a second or less";
+			$response->error = "Icons sent to server were different than in database";
 			$response->responseData = "reload";
 		}
 		respond();
@@ -272,7 +272,7 @@
 
 	if(isset($_REQUEST['restoreDefaultBG'])){
 		$BG = $db->query("SELECT background FROM settings WHERE userID = '".$user."'")->fetch_object()->background; //check if user has his own custom background image
-		if($BG != 0){
+		if($BG){
 			@unlink("../images/bg/".$BG.".jpg");
 			$db->query("UPDATE settings SET background = 0 WHERE userID = '".$user."'");
 			$response->log = "Custom background removed";
@@ -299,7 +299,7 @@
 			$image = $_FILES["image"];
 			$path = "../images/bg/";
 			$BG = $db->query("SELECT background FROM settings WHERE userID = '".$user."'")->fetch_object()->background; //check if user has his own custom background image
-			$filename = ($BG != 0) ? $BG : time(); // if he has -> get its name, and if not -> generate new name
+			$filename = ($BG) ? $BG : time(); // if he has -> get its name, and if not -> generate new name
 
 			switch($image["type"]){
 				case 'image/jpeg':
@@ -382,7 +382,7 @@
 		$URL = $_POST["URL"];
 		$path = "../images/bg/";
 		$BG = $db->query("SELECT background FROM settings WHERE userID = '".$user."'")->fetch_object()->background; //check if user has his own custom background image
-		$filename = ($BG != 0) ? $BG : time(); // if he has -> get its name, and if not -> generate new name
+		$filename = ($BG) ? $BG : time(); // if he has -> get its name, and if not -> generate new name
 
 
 		$tmpFile = fopen($path.$filename.".tmp", 'w+');        	 	// temporarly save file to server with .tmp extension
@@ -492,6 +492,7 @@
 
 
 	if(isset($_REQUEST['addFolder'])){
+		$nameRaw = $_POST["name"];
 		$name = adaptToQuery($_POST["name"]);
 
 		if(strlen($name) > 30){
@@ -500,16 +501,16 @@
 			respond();
 		}
 
-		$foldersInDB = selectColumnToArray("folders", "name");	// writes to array elements from column "name" of table "folders"
-		if(in_array($name, $foldersInDB)){
+		$folderInDB = @$db->query("SELECT name FROM folders WHERE userID = '".$user."' AND name = '".$name."'")->fetch_object()->name;
+		if($folderInDB){
 			$response->info = "This folder is already in database";
 			$response->responseData = "alreadyExist";
 			respond();
 		}
 
-		$foldersCount = $db->query("SELECT COUNT(*) AS count FROM folders WHERE userID = '".$user."'")->fetch_object()->count;
-		$db->query("INSERT INTO folders SET userID = '".$user."', orderID = ".$foldersCount.", name = '".$name."'");
-		$response->log = "Folder '".$name."' added";
+		$foldersNum = $db->query("SELECT COUNT(*) AS count FROM folders WHERE userID = '".$user."'")->fetch_object()->count;
+		$db->query("INSERT INTO folders SET userID = '".$user."', orderID = ".$foldersNum.", name = '".$name."'");
+		$response->log = "Folder '".$nameRaw."' added";
 		respond();
 	}
 
@@ -522,6 +523,7 @@
 
 
 	if(isset($_REQUEST['deleteFolder'])){
+		$nameRaw = $_POST["name"];
 		$name = adaptToQuery($_POST["name"]);
 
 		if((strtoupper($name) == "START") || (strtoupper($name) == "BIN"))
@@ -530,7 +532,7 @@
 		else{
 			moveFolderContent($name, "BIN");
 			deleteWithOrderIdDecrease("folders", "name", $name);	// delete folder with selected "name" from table "folders", and decrease every next "orderID" by 1
-			$response->log = "Folder '".$name."' deleted, it's content is now inside bin";
+			$response->log = "Folder '".$nameRaw."' deleted, it's content is now inside bin";
 		}
 		respond();
 	}
@@ -544,34 +546,48 @@
 
 
 	if(isset($_REQUEST['renameFolder'])){
+		$oldNameRaw = $_POST["oldName"];
+		$newNameRaw = $_POST["newName"];
 		$oldName = adaptToQuery($_POST["oldName"]);
 		$newName = adaptToQuery($_POST["newName"]);
 
-		if($db->query("SELECT name FROM folders WHERE name = '".$oldName."'")->fetch_object()){ // if this folder exist
-			if((strtoupper($oldName) == "START") || (strtoupper($oldName) == "BIN"))
-				$response->info = "You can't change this folder's name";
-
-			else if($oldName == $newName)
-				$response->log = "xD ?";
-
-			else{
-				moveFolderContent($oldName, $newName);
-
-				$foldersInDB = selectColumnToArray("folders", "name");	// writes to array elements from column "name" of table "folders"
-				if(in_array($newName, $foldersInDB)){
-					$response->log = "Content of folder moved to existing folder '".$newName."'";
-					$response->responseData = "alreadyExist";
-					deleteWithOrderIdDecrease("folders", "name", $oldName);	// delete folder with selected "name" from table "folders", and decrease every next "orderID" by 1
-				}
-				else{
-					$db->query("UPDATE folders SET name = '".$newName."' WHERE userID = '".$user."' AND name = '".$oldName."'");
-					$response->log = "Folder renamed from '".$oldName."' to '".$newName."'";
-				}
-			}
+		// if user wants to rename "Start" or "BIN" folder
+		if((strtolower($oldName) == "start") || (strtolower($oldName) == "bin")){
+			$response->info = "You can't change this folder's name";
+			respond();
 		}
-		else{
+
+		// if old folder don't exist
+		if(!$db->query("SELECT name FROM folders WHERE userID = '".$user."' AND name = '".$oldName."'")->fetch_object()){
 			$response->error = "This folder doesn't exist anymore";
 			$response->responseData = "reload";
+			respond();
+		}
+
+		if($oldName == $newName){ // case-sensitive string comparison
+			$response->log = "xD ?";
+			respond();
+		}
+
+		$folderInDB = @$db->query("SELECT name FROM folders WHERE userID = '".$user."' AND name = '".$newName."'")->fetch_object()->name;
+		// if folder with new name already exist
+		if($folderInDB){
+			if(strtolower($oldName) == strtolower($newName)){ // case-insensitive string comparison
+				$db->query("UPDATE folders SET name = '".$newName."' WHERE userID = '".$user."' AND name = '".$oldName."'");
+				$response->log = "Folder renamed from '".$oldNameRaw."' to '".$newNameRaw."'";
+			}
+			else{
+				deleteWithOrderIdDecrease("folders", "name", $oldName);	// delete folder with selected "name" from table "folders", and decrease every next "orderID" by 1
+				moveFolderContent($oldName, $folderInDB); // move folders content to new folder
+				$response->log = "Content of folder moved to existing folder '".$folderInDB."'";
+				$response->responseData = "alreadyExist";
+			}
+		}
+		// if folder with new name doesn't exist
+		else{
+			$db->query("UPDATE folders SET name = '".$newName."' WHERE userID = '".$user."' AND name = '".$oldName."'");
+			moveFolderContent($oldName, $newName); // move folders content to new folder
+			$response->log = "Folder renamed from '".$oldNameRaw."' to '".$newNameRaw."'";
 		}
 		respond();
 	}
@@ -597,15 +613,15 @@
 			}
 			else{
 				// decrease every next "orderID" by 1
-					$oldfolderCount = $db->query("SELECT COUNT(*) AS count FROM iconsorder WHERE userID = '".$user."' AND folder = '".$oldFolder."'")->fetch_object()->count;
+					$oldFolderIconsNum = $db->query("SELECT COUNT(*) AS count FROM iconsorder WHERE userID = '".$user."' AND folder = '".$oldFolder."'")->fetch_object()->count;
 					$orderID = $db->query("SELECT orderID FROM iconsorder WHERE userID = '".$user."' AND ID = '".$ID."'")->fetch_object()->orderID;
-					for($i = $orderID+1; $i < $oldfolderCount; $i++){
+					for($i = $orderID+1; $i < $oldFolderIconsNum; $i++){
 						$db->query("UPDATE iconsorder SET orderID = orderID-1 WHERE userID = '".$user."' AND orderID = ".$i." AND folder = '".$oldFolder."'");
 					}
 
 				// and then move selected icon to the end of a new folder
-					$newfolderCount = $db->query("SELECT COUNT(*) AS count FROM iconsorder WHERE userID = '".$user."' AND folder = '".$newFolder."'")->fetch_object()->count;
-					$db->query("UPDATE iconsorder SET orderID = ".$newfolderCount.", folder = '".$newFolder."' WHERE userID = '".$user."' AND ID = '".$ID."'");
+					$newFolderIconsNum = $db->query("SELECT COUNT(*) AS count FROM iconsorder WHERE userID = '".$user."' AND folder = '".$newFolder."'")->fetch_object()->count;
+					$db->query("UPDATE iconsorder SET orderID = ".$newFolderIconsNum.", folder = '".$newFolder."' WHERE userID = '".$user."' AND ID = '".$ID."'");
 
 				$response->log = "Icon moved to folder '".$newFolder."'";
 				if($newFolder == "BIN") $response->log = "Icon moved to bin";
@@ -711,13 +727,12 @@
 		global $db, $user;
 		$oldFolder = adaptToQuery($oldFolder);
 		$newFolder = adaptToQuery($newFolder);
-		$newFolderCount = adaptToQuery($db->query("SELECT COUNT(*) AS count FROM iconsorder WHERE userID = '".$user."' AND folder = '".$newFolder."'")->fetch_object()->count);
+		$newFolderIconsNum = adaptToQuery($db->query("SELECT COUNT(*) AS count FROM iconsorder WHERE userID = '".$user."' AND folder = '".$newFolder."'")->fetch_object()->count);
 
-		$iconsInOldFolder = array();
-		$results = $db->query("SELECT ID FROM iconsorder WHERE userID = '".$user."' AND folder = '".$oldFolder."'");
-		while($row = $results->fetch_object()){
+		$folderIcons = $db->query("SELECT ID FROM iconsorder WHERE userID = '".$user."' AND folder = '".$oldFolder."'");
+		while($row = $folderIcons->fetch_object()){
 			$ID = $row->ID;
-			$db->query("UPDATE iconsorder SET orderID = ".$newFolderCount++.", folder = '".$newFolder."' WHERE userID = '".$user."' AND ID = '".$ID."'");
+			$db->query("UPDATE iconsorder SET orderID = ".$newFolderIconsNum++.", folder = '".$newFolder."' WHERE userID = '".$user."' AND ID = '".$ID."'");
 		}
 	}
 

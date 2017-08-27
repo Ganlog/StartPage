@@ -9,6 +9,7 @@ icons = {
 		order: function(){
 			ajax.onload = function(){
 				if(ajax.responseData == "reload"){
+					display.info("Page should reload automatically in a second or less");
 					icons.load.folder(icons.activeFolder);
 				}
 			}
@@ -84,16 +85,23 @@ icons = {
 		},
 		folder: function(folder){
 			ajax.onload = function(){
-				icons.activeFolder = folder;
 				if(ajax.responseData){
+					if(ajax.responseData == "reload"){
+						display.info("Folders list should reload automatically in a second or less");
+						folders.load();
+						return;
+					}
+
+
+					icons.activeFolder = folder;
 					// remove information about previous icons
-						icons.clear();
+					icons.clear();
 
 					// show folder content
-						var ajaxResp = ajax.responseData;
-						for(i = 0; i < ajaxResp.count; i++){
-							icons.add(ajaxResp.ID[i], ajaxResp.URL[i], ajaxResp.image[i]);
-						}
+					var ajaxResp = ajax.responseData;
+					for(i = 0; i < ajaxResp.count; i++){
+						icons.add(ajaxResp.ID[i], ajaxResp.URL[i], ajaxResp.image[i]);
+					}
 
 					// show plus-icon if current folder is not bin
 					if(icons.activeFolder != "BIN")
@@ -143,7 +151,7 @@ icons = {
 		icons.arrange();
 		ajax.onload = function(){
 			if(ajax.responseData == "reload"){
-				display.info("Lista folderów zostanie ponownie załadowana");
+				display.info("Folders list should reload automatically in a second or less");
 				folders.load();
 				icons.load.folder(icons.activeFolder);
 			}

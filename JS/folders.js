@@ -33,7 +33,6 @@ folders = {
 		ajax.GET("loadFolders");
 	},
 	add: function(name){
-		name = folders.displayFormat(name);
 		var div = document.createElement("div");
 			div.setAttribute("class", "folder");
 			div.setAttribute("draggable", "true");
@@ -43,9 +42,12 @@ folders = {
 	},
 	save: {
 		newFolder: function(name){
-			name = folders.displayFormat(name);
 			ajax.onload = function(){
-				if((ajax.responseData != "alreadyExist") && (ajax.responseData != "nameTooLong")){
+				if(ajax.responseData == "alreadyExist"){
+					display.info("List of folders should reload automatically in a second or less");
+					folders.load();
+				}
+				else if(ajax.responseData != "nameTooLong"){
 					folders.add(name);
 					popupWindow.turnOFF();
 				}
@@ -74,31 +76,34 @@ folders = {
 	},
 	renameFolder: function(folderDIV, newName){
 		var oldName = folderDIV.id.replace("folder_", '');
-		newName = folders.displayFormat(newName);
-		if(oldName.toUpperCase() == "START"){
-			display.info("You can't change name of folder 'Start'");
-		}
-		else{
-			ajax.onload = function(){
+		ajax.onload = function(){
+			if(ajax.responseData){
 				if(ajax.responseData == "reload"){
-					display.info("List of folders will be reloaded");
+					display.info("List of folders should reload automatically in a second or less");
 					folders.load();
+					return;
 				}
-				else if(ajax.responseData == "alreadyExist")
-					folderDIV.remove();
+
+				// if folder with new name already exist refresh list of folders
+				if(ajax.responseData == "alreadyExist")
+					folders.load();
+				// otherwise add new folder to list
 				else{
 					folderDIV.id = "folder_"+newName;
 					folderDIV.innerHTML = newName;
 				}
 
+				// if folder which name was changed was active folder, load folder with new name
 				if(oldName == icons.activeFolder)
 					icons.load.folder(newName);
+
+				popupWindow.turnOFF();
 			}
-			var data = new FormData();
-				data.append("oldName", oldName);
-				data.append("newName", newName);
-			ajax.POST("renameFolder", data);
 		}
+		var data = new FormData();
+			data.append("oldName", oldName);
+			data.append("newName", newName);
+		ajax.POST("renameFolder", data);
 	},
 	deleteFolder: function(folderDIV){
 		if(folderDIV.id.replace("folder_", '').toUpperCase() == "START"){
@@ -116,22 +121,6 @@ folders = {
 				data.append("name", folderDIV.id.replace("folder_", ''));
 			ajax.POST("deleteFolder", data);
 		}
-	},
-	displayFormat: function(string){
-		var firstLetter = [0];	// array will store indexes of first letters of words
-
-		for(var i=0; i<string.length; i++)
-				if (string[i] == " ")
-					firstLetter.push(i+1);
-
-		string = string.toLowerCase();			// first change whole text to lowercase
-		var bigLetter;
-		for(var i=0; i<firstLetter.length; i++){	// then using stored indexes change first letters to uppercase
-			bigLetter = string.charAt(firstLetter[i]).toUpperCase();
-			string = string.substring(0,firstLetter[i]) + bigLetter + string.substring(firstLetter[i]+1);
-		}
-
-		return string;
 	},
 	edit:{
 		enabled: false,

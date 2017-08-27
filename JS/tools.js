@@ -59,17 +59,20 @@ tools = {
 		keyFunction: [],
 		keyStateListener: (function(){
 			onkeydown = function(e){
-				if(!tools.keyboard.keyPressed["k"+e.keyCode]){
-					tools.keyboard.keyPressed["k"+e.keyCode] = true;
-
-					// execute function assigned to key
-					if(tools.keyboard.keyFunction["k"+e.keyCode])
-						tools.keyboard.keyFunction["k"+e.keyCode]();
+				if(e.target.type != 'text'){
+					if(!tools.keyboard.keyPressed["k"+e.keyCode]){
+						tools.keyboard.keyPressed["k"+e.keyCode] = true;
+						// execute function assigned to key
+						if(tools.keyboard.keyFunction["k"+e.keyCode])
+							tools.keyboard.keyFunction["k"+e.keyCode]();
+					}
 				}
-			};
+			}
 			onkeyup = function(e){
-				delete tools.keyboard.keyPressed["k"+e.keyCode];
-			};
+				if(e.target.type != 'text'){
+					delete tools.keyboard.keyPressed["k"+e.keyCode];
+				}
+			}
 		})(),
 	},
 }
