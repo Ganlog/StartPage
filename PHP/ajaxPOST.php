@@ -88,8 +88,11 @@
 			$db->query("INSERT INTO sessions SET userID = '".$user."', sessionID = '".$sessID."', expireTime = '".$expireTime."'");
 			setcookie("sessID", $sessID, $expireTime, "/");
 
-			$response->log = "Registered as '".$usernameRaw."'";
+			// add folder 'Start' and set default icons size for a nwe user
+			$db->query("INSERT INTO folders SET userID = '".$user."', orderID = 0, name = 'Start'");
+			$db->query("INSERT INTO settings SET userID = '".$user."', iconSize = 100");
 
+			$response->log = "Registered as '".$usernameRaw."'";
 			$resp = array();
 				array_push($resp, $user);
 				array_push($resp, $username);
@@ -114,7 +117,7 @@
 		$hashPass = $db->query("SELECT password FROM users WHERE username = '".$username."'")->fetch_object()->password;
 		if(password_verify($password, $hashPass)){
 			$user = $db->query("SELECT userID FROM users WHERE username = '".$username."'")->fetch_object()->userID; // it is used to get original upper/lowerCases
-			setcookie("user", $userID, $expireTime, "/");
+			setcookie("user", $user, $expireTime, "/");
 
 			$sessID = str_shuffle(password_hash($user.time(), PASSWORD_BCRYPT));
 			$db->query("INSERT INTO sessions SET userID = '".$user."', sessionID = '".$sessID."', expireTime = '".$expireTime."'");

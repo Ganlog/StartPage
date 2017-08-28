@@ -153,11 +153,7 @@
 
 
 	if(isset($_REQUEST['loadSize'])){
-		$iconSize = @$db->query("SELECT iconSize FROM settings WHERE userID = '".$user."'")->fetch_object()->iconSize; // if iconSize is saved in database, get it
-		if($iconSize == 0){		// otherwise set value and save it to database
-			$iconSize = 100;
-			$db->query("INSERT INTO settings SET userID = '".$user."', iconSize = ".$iconSize);
-		}
+		$iconSize = $db->query("SELECT iconSize FROM settings WHERE userID = '".$user."'")->fetch_object()->iconSize;
 		$response->responseData = $iconSize;
 		respond();
 	}
@@ -235,15 +231,9 @@
 	if(isset($_REQUEST['loadFolders'])){
 		$foldersList = array();
 		$results = $db->query("SELECT name FROM folders WHERE userID = '".$user."' ORDER BY orderID ASC");
-		$foldersNum = mysqli_num_rows($results);
 
-		if($foldersNum){	// if some folders exist, write their names to array 'foldersList'
-			while($row = $results->fetch_object())
-				array_push($foldersList, $row->name);
-		}
-		else{	// if no folder exists, add folder "Start"
-			$db->query("INSERT INTO folders SET userID = '".$user."', orderID = 0, name = 'Start'");
-			array_push($foldersList, 'start');
+		while($row = $results->fetch_object()){
+			array_push($foldersList, $row->name);
 		}
 
 		$response->log = "Loaded list of folders";
