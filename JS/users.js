@@ -1,19 +1,33 @@
 users = {
   getCurrentUser: function(){
-    ajax.onload = function(){
-      if(ajax.responseData){
-        localStorage["currentUser"] = ajax.responseData;
-        users.load.userContent();
-      }
+    if(!localStorage["lastUserFetchTime"]) localStorage["lastUserFetchTime"] = 1;
+
+    // if user was fetched less than a minute ago load his content without checking it on server and generating new sessionID
+    if((Number(localStorage["lastUserFetchTime"])+60*1000) > Number(new Date())){
+      users.load.userContent();
     }
-    ajax.GET("getUser");
+    else{
+      localStorage["lastUserFetchTime"] = Number(new Date());
+      ajax.onload = function(){
+        if(ajax.responseData){
+          var oldSessID = ajax.responseData.pop();
+          localStorage["currentUser"] = ajax.responseData;
+
+          ajax.onload = function(){ users.load.userContent(); }
+          var data = new FormData();
+            data.append("oldSessID", oldSessID);
+          ajax.POST("confirmNewSessID", data);
+        }
+      }
+      ajax.GET("getUser");
+    }
   },
 
   load:{
     userContent: function(){
       users.load.background();
       icons.load.size();
-      icons.load.folder(localStorage["lastActiveFolder"] || "Start");
+      icons.load.folder(localStorage["lastActiveFolder"]);
       folders.load();
       popupWindow.turnOFF();
     },
@@ -59,6 +73,7 @@ users = {
     localStorage.removeItem("currentUser");
     localStorage.removeItem("lastActiveFolder");
 
+    document.body.style.backgroundImage = "url('images/bg.jpg')";
     document.getElementById("mainFolders").innerHTML = '';
     folders.edit.disable();
     icons.clear();
@@ -69,19 +84,19 @@ users = {
   },
 
   signUpCheck: function(){
-    var user = document.getElementById("w_SignUpUser").value;
+    var username = document.getElementById("w_SignUpUser").value;
     var pass = document.getElementById("w_SignUpPass").value;
     var passConf = document.getElementById("w_SignUpConfPass").value;
-    if(user && pass && passConf)
+    if(username && pass && passConf)
       if(pass == passConf)
-        users.signUp(user, pass);
+        users.signUp(username, pass);
       else
         display.error("Passwords don't match");
     else
       display.info("Please fill required fields");
   },
 
-  signUp: function(user, pass){
+  signUp: function(username, pass){
     ajax.onload = function(){
       if(ajax.responseData){
         localStorage["currentUser"] = ajax.responseData;
@@ -89,35 +104,35 @@ users = {
       }
     }
     var data = new FormData();
-      data.append("user", user);
+      data.append("username", username);
       data.append("pass", pass);
     ajax.POST("sign-up", data);
   },
 
   logInCheck: function(){
-    var user = document.getElementById("w_LogInUser").value;
+    var username = document.getElementById("w_LogInUser").value;
     var pass = document.getElementById("w_LogInPass").value;
-    if(user && pass)
-      users.logIn(user, pass);
+    if(username && pass)
+      users.logIn(username, pass);
     else
       display.info("Please fill required fields");
   },
 
-  logIn: function(user, pass){
+  logIn: function(username, pass){
     ajax.onload = function(){
-      if(ajax.responseData)
+      if(ajax.responseData){
         localStorage["currentUser"] = ajax.responseData;
         users.load.userContent();
+      }
     }
     var data = new FormData();
-      data.append("user", user);
+      data.append("username", username);
       data.append("pass", pass);
     ajax.POST("log-in", data);
   },
 
   logOut: function(){
     ajax.onload = function(){
-      users.removeUserContent();
       popupWindow.turnON("log-in");
       document.body.style.backgroundImage = "url('images/bg.jpg')";
     }
@@ -130,10 +145,9 @@ users = {
 
 // this code executes on inactive tabs, everytime localStorage is changed
 window.addEventListener('storage', function(event){
-  if(event.key == 'currentUser'){
-    if(event.newValue == null)
-      users.logOut();
-    else
+  if(event.key == 'currentUser')
+    if(event.newValue != null)
       users.load.userContent();
-  }
+    else
+      popupWindow.turnON("log-in");
 });

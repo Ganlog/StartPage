@@ -83,7 +83,20 @@ icons = {
 			}
 			ajax.GET("loadSize");
 		},
+		checkFirstFolder: null,
 		folder: function(folder){
+			clearInterval(this.checkFirstFolder);
+			// if folder is not selected, wait for list of folders to load, and then load first folder from the list
+			if(!folder){
+				this.checkFirstFolder = setInterval(function(){
+					if(document.getElementsByClassName("folder").length > 0){
+						icons.load.folder(document.getElementsByClassName("folder")[0].id.replace("folder_", '')); // load first folder from folders list
+						clearInterval(this.checkFirstFolder);
+					}
+				},25);
+				return;
+			}
+
 			ajax.onload = function(){
 				if(ajax.responseData){
 					if(ajax.responseData == "reload"){
@@ -92,10 +105,8 @@ icons = {
 						return;
 					}
 
-
 					icons.activeFolder = folder;
-					// remove information about previous icons
-					icons.clear();
+					icons.clear(); // remove information about previous icons
 
 					// show folder content
 					var ajaxResp = ajax.responseData;
@@ -106,6 +117,7 @@ icons = {
 					// show plus-icon if current folder is not bin
 					if(icons.activeFolder != "BIN")
 							icons.iconPlus.show();
+
 					icons.arrange();
 					localStorage["lastActiveFolder"] = folder;
 				}
@@ -166,8 +178,7 @@ icons = {
 		ajax.POST("moveIconToFolder", data);
 	},
 	deleteIcon: function(ID){
-		if(icons.activeFolder.toUpperCase() == "BIN"){
-
+		if(icons.activeFolder == "BIN"){
 			delete icons.list[ID];						// delete icon from list of icons
 			icons.order.splice(icons.order.indexOf(ID), 1);	// delete icon from order list
 			icons.count--;
@@ -193,9 +204,9 @@ icons = {
 			countXtest = Math.floor(containerWidth / size),		// number of columns of icons (must be tested to avoid situation with 0 columns)
 			countX = (countXtest > 0) ? countXtest : 1,			// number of columns must be at least 1
 			countY = Math.ceil(iconCount / countX),				// number of rows
-			positionX, positionY;
+			positionX, positionY,
+			nr = 0;
 
-		nr = 0;
 		for(var i=0; i < countY; i++){
 			if((iconCount - i * countX) < countX)
 				countX = iconCount - i*countX;

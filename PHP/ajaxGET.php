@@ -17,6 +17,7 @@
 
 	function respond(){
 		global $response;
+
 		print_r(json_encode($response));
 		exit;
 	}
@@ -56,23 +57,23 @@
 	");
 	$db->query("
 		CREATE TABLE IF NOT EXISTS iconsorder (
-			userID bigint NOT NULL,
 			orderID int NOT NULL,
 			ID bigint NOT NULL,
-			folder varchar(30) NOT NULL
+			folderID bigint NOT NULL,
 		) DEFAULT CHARSET=utf8;
 	");
 	$db->query("
 		CREATE TABLE IF NOT EXISTS settings (
 			userID bigint NOT NULL,
 			iconSize int NOT NULL,
-			background bigint(20) NOT NULL
+			background bigint NOT NULL
 		) DEFAULT CHARSET=utf8;
 	");
 	$db->query("
 		CREATE TABLE IF NOT EXISTS folders (
 			userID bigint NOT NULL,
 			orderID int NOT NULL,
+			folderID bigint NOT NULL,
 			name varchar(30) NOT NULL
 		) DEFAULT CHARSET=utf8;
 	");
@@ -100,15 +101,13 @@
 
 
 	// check correctness of user verification cookies from client side
-	if(!isset($_COOKIE["user"]) || !isset($_COOKIE["sessID"])){
+	if(!isset($_COOKIE["userID"]) || !isset($_COOKIE["sessID"])){
 		$response->responseData = "log-in";
 		respond();
 	}
-	$user = adaptToQuery($_COOKIE["user"]);
+	$userID = adaptToQuery($_COOKIE["userID"]);
 	$sessID = adaptToQuery($_COOKIE["sessID"]);
-	$sessVerify = mysqli_num_rows($db->query("SELECT userID FROM sessions WHERE userID = '".$user."' AND sessionID = '".$sessID."'"));
-
-	if(!$sessVerify){
+	if(!mysqli_num_rows($db->query("SELECT userID FROM sessions WHERE userID = ".$userID." AND sessionID = '".$sessID."'"))){
 		$response->responseData = "log-in";
 		respond();
 	}
@@ -123,24 +122,22 @@
 
 	if(isset($_REQUEST['getUser'])){
 		$expireTime = time()+(86400*30);
-		setcookie("user", $user, $expireTime, "/"); // extend lifespan of cookie by another 30 days (86400s = 1 day)
 
+		setcookie("userID", $userID, $expireTime, "/"); // extend lifespan of cookie by another 30 days (86400s = 1 day)
 		$newSessID = str_shuffle(password_hash($sessID, PASSWORD_BCRYPT));
-
 		// if by some miracle in dastabase exists session with sessionID == newSessionID, generate new newSessionID
 		while(@mysqli_num_rows("SELECT sessionID FROM sessions WHERE sessionID = '".$newSessID."'"))
 			$newSessID = str_shuffle($newSessID);
-
-		$db->query("UPDATE sessions SET sessionID = '".$newSessID."', expireTime = '".$expireTime."' WHERE sessionID = '".$sessID."'");
 		setcookie("sessID", $newSessID, $expireTime, "/"); // set new sessionID cookie for another 30 days
 
-		// delete unactive sessions older than 30 days
-		$db->query("DELETE FROM sessions WHERE expireTime < '".time()."'");
-
 		$resp = array();
-			array_push($resp, $user);
-			array_push($resp, $db->query("SELECT username FROM users WHERE userID = '".$user."'")->fetch_object()->username);
+			array_push($resp, $userID);
+			array_push($resp, $db->query("SELECT username FROM users WHERE userID = ".$userID)->fetch_object()->username);
+			array_push($resp, $sessID);
 		$response->responseData = $resp;
+
+		// delete unactive sessions older than 30 days
+		$db->query("DELETE FROM sessions WHERE expireTime < ".time());
 		respond();
 	}
 
@@ -153,7 +150,7 @@
 
 
 	if(isset($_REQUEST['loadSize'])){
-		$iconSize = $db->query("SELECT iconSize FROM settings WHERE userID = '".$user."'")->fetch_object()->iconSize;
+		$iconSize = $db->query("SELECT iconSize FROM settings WHERE userID = ".$userID)->fetch_object()->iconSize;
 		$response->responseData = $iconSize;
 		respond();
 	}
@@ -167,7 +164,7 @@
 
 
 	if(isset($_REQUEST['loadBG'])){
-		$BG = @$db->query("SELECT background FROM settings WHERE userID = '".$user."'")->fetch_object()->background;
+		$BG = @$db->query("SELECT background FROM settings WHERE userID = ".$userID)->fetch_object()->background;
 		if($BG == 0)
 			$response->responseData = "bg.jpg";
 		else
@@ -184,25 +181,26 @@
 
 
 	if(isset($_REQUEST['loadFolderContent'])){
-		$folderRaw = $_REQUEST['loadFolderContent'];
-		$folder = adaptToQuery($_REQUEST['loadFolderContent']);
+		$folder = ($_REQUEST['loadFolderContent'] == "BIN") ? $userID : adaptToQuery($_REQUEST['loadFolderContent']); // BIN ID is the same as userID
+		if(!is_numeric($folder))
+			$folder = -1;
 
-		$folderInDB = @$db->query("SELECT name FROM folders WHERE userID = '".$user."' AND name = '".$folder."'")->fetch_object()->name;
-		if(!$folderInDB){
-			$response->error = "Folder '".$folder."' doesn't exist anymore.";
+		$folderName = @$db->query("SELECT name FROM folders WHERE userID = ".$userID." AND folderID = ".$folder)->fetch_object()->name;
+		if(!$folderName){
+			$response->error = "This folder doesn't exist";
 			$response->responseData = "reload";
 			respond();
 		}
 
 		do{
-			$iconsInDB = selectColumnToArray("iconsorder", "ID", "folder", $folder);		// writes to array elements from column "ID" of "iconsorder" table, for selected value in column "folder"
+			$iconsInDB = selectColumnToArray("iconsorder", "ID", "folderID", $folder);		// writes to array elements from column "ID" of "iconsorder" table, for selected value in column "folder"
 		}while(count(array_unique($iconsInDB))<count($iconsInDB));	// repeat while there are no duplicates (they apear sometimes for a short time while changing order)
 
 		$results = $db->query("
 			SELECT icons.ID, icons.URL, icons.imageExt
 			FROM iconsorder
 			INNER JOIN icons ON icons.ID = iconsorder.ID
-			WHERE userID = '".$user."' AND folder = '".$folder."'
+			WHERE folderID = ".$folder."
 			ORDER BY iconsorder.orderID ASC
 		");
 
@@ -214,8 +212,8 @@
 		$icons->count = mysqli_num_rows($results);
 
 		$response->responseData = $icons;
-		$response->log = "Loaded content of folder: '".$folderRaw."'";
-		if($folder == "BIN")
+		$response->log = "Loaded content of folder: '".$folderName."'";
+		if($folder == $userID) // BIN ID is the same as userID
 			$response->log = "Loaded content of bin";
 		respond();
 	}
@@ -230,9 +228,11 @@
 
 	if(isset($_REQUEST['loadFolders'])){
 		$foldersList = array();
-		$results = $db->query("SELECT name FROM folders WHERE userID = '".$user."' ORDER BY orderID ASC");
+		$results = $db->query("SELECT `folderID`, `name` FROM folders WHERE userID = ".$userID." ORDER BY orderID ASC");
 
+		$results->fetch_object(); // ignore first folder (BIN)
 		while($row = $results->fetch_object()){
+			array_push($foldersList, $row->folderID);
 			array_push($foldersList, $row->name);
 		}
 
@@ -251,7 +251,7 @@
 
 	if(isset($_REQUEST['loadImage'])){
 		$ID = adaptToQuery($_REQUEST['loadImage']);
-		$imageExt = $db->query("SELECT imageExt FROM icons WHERE ID = '".$ID."'")->fetch_object()->imageExt;
+		$imageExt = $db->query("SELECT imageExt FROM icons WHERE ID = ".$ID)->fetch_object()->imageExt;
 		$response->responseData = $ID.$imageExt;
 		respond();
 	}
@@ -273,13 +273,12 @@
 
 
 	function selectColumnToArray($tableName, $columnName, $detailColumnName=0, $detailValue=0){
-		global $db, $user;
+		global $db;
 		$array = array();
 
 		$results = $db->query(
 			"SELECT ".$columnName." FROM ".$tableName." ".
-			"WHERE userID = '".$user."' ".
-			(($detailColumnName) ? "AND ".$detailColumnName." = '".$detailValue."'" : '')
+			"WHERE ".(($detailColumnName) ? $detailColumnName." = '".$detailValue."'" : '')
 		);
 
 		while($row = $results->fetch_object())

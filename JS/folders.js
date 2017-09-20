@@ -26,30 +26,33 @@ folders = {
 
 				// show folders
 					var ajaxResp = ajax.responseData;
-					for(i = 0; i < ajaxResp.length; i++)
-						folders.add(ajaxResp[i]);
+					for(i = 0; i < ajaxResp.length; i+=2)
+						folders.add(ajaxResp[i], ajaxResp[i+1]);
 			}
 		}
 		ajax.GET("loadFolders");
 	},
-	add: function(name){
+	add: function(ID, name){
 		var div = document.createElement("div");
 			div.setAttribute("class", "folder");
 			div.setAttribute("draggable", "true");
-			div.id = "folder_"+name;
+			div.id = "folder_"+ID;
 			div.innerHTML = name;
 		document.getElementById("mainFolders").insertBefore(div, document.getElementById("folderPlus"));
 	},
 	save: {
 		newFolder: function(name){
 			ajax.onload = function(){
-				if(ajax.responseData == "alreadyExist"){
-					display.info("List of folders should reload automatically in a second or less");
-					folders.load();
-				}
-				else if(ajax.responseData != "nameTooLong"){
-					folders.add(name);
-					popupWindow.turnOFF();
+				if(ajax.responseData){
+					var ajaxResp = ajax.responseData;
+					if(ajaxResp == "alreadyExist"){
+						display.info("List of folders should reload automatically in a second or less");
+						folders.load();
+					}
+					else if(ajaxResp != "nameTooLong"){
+						folders.add(ajaxResp[0], ajaxResp[1]);
+						popupWindow.turnOFF();
+					}
 				}
 			}
 			var data = new FormData();
@@ -106,21 +109,25 @@ folders = {
 		ajax.POST("renameFolder", data);
 	},
 	deleteFolder: function(folderDIV){
-		if(folderDIV.id.replace("folder_", '').toUpperCase() == "START"){
-			folderDIV.removeAttribute("style");
-			display.info("You can't delete folder 'Start'");
-		}
-		else{
-			ajax.onload = function(){
-				if(folderDIV.id.replace("folder_", '') == icons.activeFolder){
-					icons.load.folder("start");
-				}
-				folderDIV.remove();
-			};
-			var data = new FormData();
-				data.append("name", folderDIV.id.replace("folder_", ''));
-			ajax.POST("deleteFolder", data);
-		}
+		var folderName = folderDIV.id.replace("folder_", '');
+		ajax.onload = function(){
+			if(ajax.responseData == "cantDelete"){
+				folderDIV.removeAttribute("style"); // if folder can't be deleted show it again on the list
+				return;
+			}
+
+			if(icons.activeFolder == "BIN"){
+				icons.load.folder("BIN");
+			}
+
+			if(icons.activeFolder == folderName){ // if active folder was deleted
+				icons.load.folder(document.getElementsByClassName("folder")[0].id.replace("folder_", '')); // load first folder from folders list
+			}
+			folderDIV.remove();
+		};
+		var data = new FormData();
+			data.append("folder", folderDIV.id.replace("folder_", ''));
+		ajax.POST("deleteFolder", data);
 	},
 	edit:{
 		enabled: false,
@@ -173,7 +180,7 @@ folders = {
 
 document.getElementById("folders").addEventListener('click', function(e){
 	if(e.target.id.indexOf("folder_") != -1){
-		folder = e.target.id.replace("folder_", '');
+		var folder = e.target.id.replace("folder_", '');
 		if((folders.edit.enabled) && (folder != "BIN")){
 			folders.selected = e.target;
 			popupWindow.turnON("editFolder");

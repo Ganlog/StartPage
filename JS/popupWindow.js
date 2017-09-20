@@ -18,8 +18,8 @@ popupWindow = {
 			case "addIcon": {
 				document.getElementById("w_Header").innerHTML = "Add icon:";
 				document.getElementById("w_AddIconAddress").focus();
-				document.getElementById("w_AddIconAddress").addEventListener('keyup', function(e){ if(e.keyCode == 13) icons.save.icon(tools.generateID(), this.value); });
-				document.getElementById("w_AddIconAddressOK").addEventListener('click', function(e){ icons.save.icon(tools.generateID(), document.getElementById("w_AddIconAddress").value); });
+				document.getElementById("w_AddIconAddress").addEventListener('keyup', function(e){ if(e.keyCode == 13) icons.save.icon(Number(new Date()), this.value); });
+				document.getElementById("w_AddIconAddressOK").addEventListener('click', function(e){ icons.save.icon(Number(new Date()), document.getElementById("w_AddIconAddress").value); });
 			}
 			break;
 
