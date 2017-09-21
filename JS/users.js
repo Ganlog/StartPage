@@ -35,7 +35,7 @@ users = {
     background: function(){
       ajax.onload = function(){
         if(ajax.responseData)
-          document.body.style.backgroundImage = "url('images/"+ajax.responseData+"')";
+          document.body.style.backgroundImage = "url('"+ajax.responseData+"')";
       }
       ajax.GET("loadBG");
     },
@@ -52,7 +52,7 @@ users = {
     bgFILE: function(file){
 			ajax.onload = function(){
 				if(ajax.responseData)
-					document.body.style.backgroundImage = "url('images/"+ajax.responseData+"')";
+					document.body.style.backgroundImage = "url('"+ajax.responseData+"')";
 			}
 			var data = new FormData();
 				data.append("image", file);
@@ -61,7 +61,7 @@ users = {
 		bgURL: function(URL){
 			ajax.onload = function(){
 				if(ajax.responseData)
-					document.body.style.backgroundImage = "url('images/"+ajax.responseData+"')";
+					document.body.style.backgroundImage = "url('"+ajax.responseData+"')";
 			}
 			var data = new FormData();
 				data.append("URL", URL);

@@ -54,7 +54,7 @@ icons = {
 		imageFILE: function(ID, file){
 			ajax.onload = function(){
 				if(ajax.responseData){
-					icons.list[ID].img.src = "images/icons/"+ajax.responseData;
+					icons.list[ID].img.src = ajax.responseData;
 					popupWindow.turnOFF();
 				}
 			}
@@ -65,7 +65,7 @@ icons = {
 		imageURL: function(ID, URL){
 			ajax.onload = function(){
 				if(ajax.responseData){
-					icons.list[ID].img.src = "images/icons/"+ajax.responseData;
+					icons.list[ID].img.src = ajax.responseData;
 					popupWindow.turnOFF();
 				}
 			}

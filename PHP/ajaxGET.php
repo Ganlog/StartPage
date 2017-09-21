@@ -165,9 +165,9 @@
 	if(isset($_REQUEST['loadBG'])){
 		$bgTimestamp = @$db->query("SELECT bgTimestamp FROM settings WHERE userID = ".$userID)->fetch_object()->bgTimestamp;
 		if($bgTimestamp == 0)
-			$response->responseData = "bg.jpg";
+			$response->responseData = "images/bg.jpg";
 		else
-			$response->responseData = "bg/".$userID.".jpg?".$bgTimestamp;
+			$response->responseData = "images/bg/".$userID.".jpg?".$bgTimestamp;
 		respond();
 	}
 
@@ -180,11 +180,11 @@
 
 
 	if(isset($_REQUEST['loadFolderContent'])){
-		$folder = ($_REQUEST['loadFolderContent'] == "BIN") ? $userID : adaptToQuery($_REQUEST['loadFolderContent']); // BIN ID is the same as userID
-		if(!is_numeric($folder))
-			$folder = -1;
+		$folderID = ($_REQUEST['loadFolderContent'] == "BIN") ? $userID : adaptToQuery($_REQUEST['loadFolderContent']); // BIN ID is the same as userID
+		if(!is_numeric($folderID))
+			$folderID = -1;
 
-		$folderName = @$db->query("SELECT name FROM folders WHERE userID = ".$userID." AND folderID = ".$folder)->fetch_object()->name;
+		$folderName = @$db->query("SELECT name FROM folders WHERE userID = ".$userID." AND folderID = ".$folderID)->fetch_object()->name;
 		if(!$folderName){
 			$response->error = "This folder doesn't exist";
 			$response->responseData = "reload";
@@ -192,14 +192,14 @@
 		}
 
 		do{
-			$iconsInDB = selectColumnToArray("iconsorder", "ID", "folderID", $folder);		// writes to array elements from column "ID" of "iconsorder" table, for selected value in column "folder"
+			$iconsInDB = selectColumnToArray("iconsorder", "ID", "folderID", $folderID);		// writes to array elements from column "ID" of "iconsorder" table, for selected value in column "folder"
 		}while(count(array_unique($iconsInDB))<count($iconsInDB));	// repeat while there are no duplicates (they apear sometimes for a short time while changing order)
 
 		$results = $db->query("
 			SELECT icons.ID, icons.URL, icons.imageExt
 			FROM iconsorder
 			INNER JOIN icons ON icons.ID = iconsorder.ID
-			WHERE folderID = ".$folder."
+			WHERE folderID = ".$folderID."
 			ORDER BY iconsorder.orderID ASC
 		");
 
@@ -212,7 +212,7 @@
 
 		$response->responseData = $icons;
 		$response->log = "Loaded content of folder: '".$folderName."'";
-		if($folder == $userID) // BIN ID is the same as userID
+		if($folderID == $userID) // BIN ID is the same as userID
 			$response->log = "Loaded content of bin";
 		respond();
 	}
