@@ -17,7 +17,6 @@
 
 	function respond(){
 		global $response;
-
 		print_r(json_encode($response));
 		exit;
 	}
@@ -121,7 +120,7 @@
 
 
 	if(isset($_REQUEST['getUser'])){
-		$expireTime = time()+(86400*30);
+		$expireTime = timestamp()+(86400*30);
 
 		setcookie("userID", $userID, $expireTime, "/"); // extend lifespan of cookie by another 30 days (86400s = 1 day)
 		$newSessID = str_shuffle(password_hash($sessID, PASSWORD_BCRYPT));
@@ -137,7 +136,7 @@
 		$response->responseData = $resp;
 
 		// delete unactive sessions older than 30 days
-		$db->query("DELETE FROM sessions WHERE expireTime < ".time());
+		$db->query("DELETE FROM sessions WHERE expireTime < ".timestamp());
 		respond();
 	}
 
@@ -267,6 +266,13 @@
 	function adaptToQuery($string){
 		global $db;
 		return mysqli_real_escape_string($db, $string);
+	}
+
+
+
+
+	function timestamp(){
+		return (new DateTime())->format("U");
 	}
 
 

@@ -63,7 +63,7 @@
 
 	if(isset($_REQUEST['confirmNewSessID'])){
 		$oldSessID = adaptToQuery($_POST["oldSessID"]);
-		$expireTime = time()+(86400*30);
+		$expireTime = timestamp()+(86400*30);
 		if(mysqli_num_rows($db->query("SELECT sessionID FROM sessions WHERE sessionID = '".$oldSessID."'"))){
 			$db->query("UPDATE sessions SET sessionID = '".$sessID."', expireTime = ".$expireTime." WHERE sessionID = '".$oldSessID."'");
 			$response->responseData = $sessID;
@@ -82,10 +82,10 @@
 
 	if(isset($_REQUEST['sign-up'])){
 		$username = adaptToQuery($_POST["username"]);
-		$userID = time();
+		$userID = timestamp();
 		$password = adaptToQuery($_POST["pass"]);
 		$passEncrypted = password_hash($password, PASSWORD_BCRYPT);
-		$expireTime = time()+(86400*30);
+		$expireTime = timestamp()+(86400*30);
 
 		if(strlen($username) > 30){
 			$response->error = "Maximum length of username is 30. Your username has ".strlen($username)." characters";
@@ -103,14 +103,14 @@
 			$db->query("INSERT INTO users SET userID = ".$userID.", username = '".$username."', password = '".$passEncrypted."'");
 			setcookie("userID", $userID, $expireTime, "/");
 
-			$sessID = str_shuffle(password_hash($userID.time(), PASSWORD_BCRYPT));
+			$sessID = str_shuffle(password_hash($userID.timestamp(), PASSWORD_BCRYPT));
 			$db->query("INSERT INTO sessions SET userID = ".$userID.", sessionID = '".$sessID."', expireTime = ".$expireTime);
 			setcookie("sessID", $sessID, $expireTime, "/");
 
 			// add folder 'BIN' and 'Start' and set default icons size for a new user
 				$db->query("INSERT INTO folders SET userID = ".$userID.", orderID = 0, folderID = ".$userID.", name = 'BIN'"); //BIN folder has the same ID as userID
 				// while foler with this userID exists add 1 and check again
-					$folder = time(); while(mysqli_num_rows($db->query("SELECT folderID FROM folders WHERE folderID = ".$folder))) $folder++;
+					$folder = timestamp(); while(mysqli_num_rows($db->query("SELECT folderID FROM folders WHERE folderID = ".$folder))) $folder++;
 					$db->query("INSERT INTO folders SET userID = ".$userID.", orderID = 1, folderID = ".$folder.", name = 'Start'");
 				$db->query("INSERT INTO settings SET userID = ".$userID.", iconSize = 100");
 
@@ -134,7 +134,7 @@
 	if(isset($_REQUEST['log-in'])){
 		$username = adaptToQuery($_POST["username"]);
 		$password = adaptToQuery($_POST["pass"]);
-		$expireTime = time()+(86400*30);
+		$expireTime = timestamp()+(86400*30);
 
 		$hashPass = @$db->query("SELECT password FROM users WHERE username = '".$username."'")->fetch_object()->password;
 		if(password_verify($password, $hashPass)){
@@ -143,7 +143,7 @@
 			$username = $user->username;
 			setcookie("userID", $userID, $expireTime, "/");
 
-			$sessID = str_shuffle(password_hash($userID.time(), PASSWORD_BCRYPT));
+			$sessID = str_shuffle(password_hash($userID.timestamp(), PASSWORD_BCRYPT));
 			$db->query("INSERT INTO sessions SET userID = ".$userID.", sessionID = '".$sessID."', expireTime = ".$expireTime);
 			setcookie("sessID", $sessID, $expireTime, "/");
 
@@ -329,7 +329,7 @@
 		else{
 			$image = $_FILES["image"];
 			$path = "../images/bg/";
-			$bgTimestamp = time();
+			$bgTimestamp = timestamp();
 			$filename = $userID;
 
 			switch($image["type"]){
@@ -390,9 +390,9 @@
 				if(file_exists($path.$ID.".gif"))		unlink($path.$ID.".gif");
 
 				if (move_uploaded_file($image["tmp_name"], $path.$ID.$extension)){
-					$db->query("UPDATE icons SET imageExt = '".$extension."?".time()."' WHERE ID = ".$ID);
+					$db->query("UPDATE icons SET imageExt = '".$extension."?".timestamp()."' WHERE ID = ".$ID);
 					$response->log = "Image ".$ID.$extension." saved";
-					$response->responseData = $ID.$extension."?".time();
+					$response->responseData = $ID.$extension."?".timestamp();
 				}
 				else
 					$response->error = "Error occurred while saving image, probably access privileges on server are incorrect";
@@ -413,7 +413,7 @@
 		$URL = $_POST["URL"];
 		$path = "../images/bg/";
 		$BG = $db->query("SELECT background FROM settings WHERE userID = ".$userID)->fetch_object()->background; //check if user has his own custom background image
-		$filename = ($BG) ? $BG : time(); // if he has -> get its name, and if not -> generate new name
+		$filename = ($BG) ? $BG : timestamp(); // if he has -> get its name, and if not -> generate new name
 
 		$tmpFile = fopen($path.$filename.".tmp", 'w+');        	 	// temporarly save file to server with .tmp extension
 		$cURL = curl_init($URL);
@@ -503,7 +503,7 @@
 			if(file_exists($path.$ID.".gif"))		unlink($path.$ID.".gif");
 
 			if(@copy($path.$ID.".tmp",  $path.$ID.$extension)){
-				$db->query("UPDATE icons SET imageExt = '".$extension."?".time()."' WHERE ID = ".$ID);
+				$db->query("UPDATE icons SET imageExt = '".$extension."?".timestamp()."' WHERE ID = ".$ID);
 				$response->log = "Image ".$ID.$extension." saved";
 			}
 			else
@@ -539,7 +539,7 @@
 		}
 
 		$foldersNum = $db->query("SELECT COUNT(*) AS count FROM folders WHERE userID = ".$userID)->fetch_object()->count;
-		$folder = time();
+		$folder = timestamp();
 		// while folder with this folderID exists add 1 and check again
 		while(mysqli_num_rows($db->query("SELECT folderID FROM folders WHERE folderID = ".$folder)))
 			$folder++;
@@ -705,6 +705,13 @@
 	function adaptToQuery($string){
 		global $db;
 		return mysqli_real_escape_string($db, $string);
+	}
+
+
+
+
+	function timestamp(){
+		return (new DateTime())->format("U");
 	}
 
 
