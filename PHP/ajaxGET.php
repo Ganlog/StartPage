@@ -66,7 +66,7 @@
 		CREATE TABLE IF NOT EXISTS settings (
 			userID bigint NOT NULL,
 			iconSize int NOT NULL,
-			background bigint NOT NULL
+			bgTimestamp bigint NOT NULL
 		) DEFAULT CHARSET=utf8;
 	");
 	$db->query("
@@ -164,11 +164,11 @@
 
 
 	if(isset($_REQUEST['loadBG'])){
-		$BG = @$db->query("SELECT background FROM settings WHERE userID = ".$userID)->fetch_object()->background;
-		if($BG == 0)
+		$bgTimestamp = @$db->query("SELECT bgTimestamp FROM settings WHERE userID = ".$userID)->fetch_object()->bgTimestamp;
+		if($bgTimestamp == 0)
 			$response->responseData = "bg.jpg";
 		else
-			$response->responseData = "bg/".$BG.".jpg";
+			$response->responseData = "bg/".$userID.".jpg?".$bgTimestamp;
 		respond();
 	}
 

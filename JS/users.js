@@ -35,7 +35,7 @@ users = {
     background: function(){
       ajax.onload = function(){
         if(ajax.responseData)
-          document.body.style.backgroundImage = "url('images/"+ajax.responseData+"?test')";
+          document.body.style.backgroundImage = "url('images/"+ajax.responseData+"')";
       }
       ajax.GET("loadBG");
     },

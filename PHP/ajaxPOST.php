@@ -302,10 +302,10 @@
 
 
 	if(isset($_REQUEST['restoreDefaultBG'])){
-		$BG = $db->query("SELECT background FROM settings WHERE userID = ".$userID)->fetch_object()->background; //check if user has his own custom background image
+		$BG = $db->query("SELECT bgTimestamp FROM settings WHERE userID = ".$userID)->fetch_object()->bgTimestamp; // check if user has his own custom background image
 		if($BG){
-			@unlink("../images/bg/".$BG.".jpg");
-			$db->query("UPDATE settings SET background = 0 WHERE userID = ".$userID);
+			@unlink("../images/bg/".$userID.".jpg");
+			$db->query("UPDATE settings SET bgTimestamp = 0 WHERE userID = ".$userID);
 			$response->log = "Custom background removed";
 		}
 		else
@@ -329,8 +329,8 @@
 		else{
 			$image = $_FILES["image"];
 			$path = "../images/bg/";
-			$BG = $db->query("SELECT background FROM settings WHERE userID = ".$userID)->fetch_object()->background; //check if user has his own custom background image
-			$filename = ($BG) ? $BG : time(); // if he has -> get its name, and if not -> generate new name
+			$bgTimestamp = time();
+			$filename = $userID;
 
 			switch($image["type"]){
 				case 'image/jpeg':
@@ -343,8 +343,8 @@
 			}
 			if($extension){
 				if (move_uploaded_file($image["tmp_name"], $path.$filename.$extension)){
-					$db->query("UPDATE settings SET background = ".$filename." WHERE userID = ".$userID);
-					$response->responseData = $path.$filename.$extension;
+					$db->query("UPDATE settings SET bgTimestamp = ".$bgTimestamp." WHERE userID = ".$userID);
+					$response->responseData = $path.$filename.$extension."?".$bgTimestamp;
 					$response->log = "Background image saved";
 				}
 				else
