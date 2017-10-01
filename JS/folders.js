@@ -78,33 +78,18 @@ folders = {
 		},
 	},
 	renameFolder: function(folderDIV, newName){
-		var oldName = folderDIV.id.replace("folder_", '');
+		var folder = folderDIV.id.replace("folder_", '');
 		ajax.onload = function(){
-			if(ajax.responseData){
-				if(ajax.responseData == "reload"){
-					display.info("List of folders should reload automatically in a second or less");
-					folders.load();
-					return;
-				}
-
-				// if folder with new name already exist refresh list of folders
-				if(ajax.responseData == "alreadyExist")
-					folders.load();
-				// otherwise add new folder to list
-				else{
-					folderDIV.id = "folder_"+newName;
-					folderDIV.innerHTML = newName;
-				}
-
-				// if folder which name was changed was active folder, load folder with new name
-				if(oldName == icons.activeFolder)
-					icons.load.folder(newName);
-
-				popupWindow.turnOFF();
+			if((ajax.responseData) && (ajax.responseData == "reload")){
+				display.info("List of folders should reload automatically in a second or less");
+				folders.load();
+				return;
 			}
+
+			folderDIV.innerHTML = newName;
 		}
 		var data = new FormData();
-			data.append("oldName", oldName);
+			data.append("folder", folder);
 			data.append("newName", newName);
 		ajax.POST("renameFolder", data);
 	},
@@ -250,7 +235,7 @@ document.getElementById("folder_BIN").addEventListener('drop', function(e){
 
 document.getElementById("mainFolders").addEventListener('drop', function(e){
 	e.preventDefault();
-	if((icons.selected) && (e.target.id.indexOf("folder_") != -1)){	// is icon is dropped on folder
+	if((icons.selected) && (e.target.id.indexOf("folder_") != -1)){	// if icon is dropped on folder
 		var folder = e.target.id.replace("folder_", '');
 		icons.moveIconToFolder(icons.selected, folder);
 	}

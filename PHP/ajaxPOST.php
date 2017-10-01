@@ -608,18 +608,9 @@
 			respond();
 		}
 
-		$folderWithNewName = @$db->query("SELECT folderID, name FROM folders WHERE userID = ".$userID." AND name = '".$newName."'")->fetch_object();
-		// if folder with new name already exist
-		if($folderWithNewName){
-			deleteWithOrderIdDecrease("folders", "folderID", $folderID, "userID", $userID); // delete folder with selected "name" and "userID" from table "folders", and decrease every next "orderID" by 1
-			moveFolderContent($folderID, $folderWithNewName->folderID); // move folders content to folder with new name
-			$response->log = "Content of folder moved to existing folder '".$folderWithNewName->name."'";
-			$response->responseData = "alreadyExist";
-		}
-		else{
-			$db->query("UPDATE folders SET name = '".$newName."' WHERE userID = ".$userID." AND folderID = ".$folderID);
-			$response->log = "Folder renamed to '".$newName."'";
-		}
+		$db->query("UPDATE folders SET name = '".$newName."' WHERE userID = ".$userID." AND folderID = ".$folderID);
+		$response->log = "Folder renamed to '".$newName."'";
+		$response->responseData = $newName;
 		respond();
 	}
 
@@ -684,9 +675,11 @@
 
 	if(isset($_REQUEST['saveFoldersOrder'])){
 		$newOrder = json_decode($_POST["order"]);
+		array_unshift($newOrder, $userID); // prepend "BIN" folder to the beginning of new folders order
 
 		$foldersInDB = selectColumnToArray("folders", "folderID", "userID", $userID);	// writes to array elements from column "folderID" of table "folders", for selected user
 		// if arrays have same length and values
+
 		if((count($newOrder) == count($foldersInDB)) && !array_diff($newOrder,$foldersInDB)){
 			for($i=0; $i<count($newOrder); $i++){
 				$db->query("

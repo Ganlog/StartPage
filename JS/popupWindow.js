@@ -84,7 +84,7 @@ popupWindow = {
 
 			case "editFolder": {
 				document.getElementById("w_Header").innerHTML = "Folder edit:";
-				document.getElementById("w_ChangeFolderName").value = slectedFolder.id.replace("folder_", '');
+				document.getElementById("w_ChangeFolderName").value = slectedFolder.innerHTML;
 				document.getElementById("w_ChangeFolderName").focus();
 				document.getElementById("w_ChangeFolderName").addEventListener('keyup', function(e){ if(e.keyCode == 13) folders.renameFolder(slectedFolder, this.value); });
 				document.getElementById("w_ChangeFolderNameOK").addEventListener('click', function(e){ folders.renameFolder(slectedFolder, document.getElementById("w_ChangeFolderName").value); });

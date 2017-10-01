@@ -11,6 +11,10 @@
 		window.onload = function(){
 			users.getCurrentUser();
 		}
+
+		// reload page if it is loaded using the back/forward button
+		if(window.performance && window.performance.navigation.type === 2)
+			window.location.reload();
 	</script>
 
 	<script src="JS/ajax.js" defer></script>
