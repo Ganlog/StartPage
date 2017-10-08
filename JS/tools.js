@@ -58,26 +58,26 @@ tools = {
 
 
 
-	Object.defineProperty(Element.prototype, 'outerHeight', {
-	    'get': function(){
-		  var height = this.clientHeight;
-		  var computedStyle = window.getComputedStyle(this);
-		  height += parseInt(computedStyle.marginTop);
-		  height += parseInt(computedStyle.marginBottom);
-		  height += parseInt(computedStyle.borderTopWidth);
-		  height += parseInt(computedStyle.borderBottomWidth);
-		  return height;
-	    }
-	});
+Object.defineProperty(Element.prototype, 'outerHeight', {
+	'get': function(){
+		var height = this.clientHeight;
+		var computedStyle = window.getComputedStyle(this);
+		height += parseInt(computedStyle.marginTop);
+		height += parseInt(computedStyle.marginBottom);
+		height += parseInt(computedStyle.borderTopWidth);
+		height += parseInt(computedStyle.borderBottomWidth);
+		return height;
+	}
+});
 
-	Object.defineProperty(Element.prototype, 'outerWidth', {
-	    'get': function(){
-		  var width = this.clientWidth;
-		  var computedStyle = window.getComputedStyle(this);
-		  width += parseInt(computedStyle.marginLeft);
-		  width += parseInt(computedStyle.marginRight);
-		  width += parseInt(computedStyle.borderLeftWidth);
-		  width += parseInt(computedStyle.borderRightWidth);
-		  return width;
-	    }
-	});
+Object.defineProperty(Element.prototype, 'outerWidth', {
+	'get': function(){
+		var width = this.clientWidth;
+		var computedStyle = window.getComputedStyle(this);
+		width += parseInt(computedStyle.marginLeft);
+		width += parseInt(computedStyle.marginRight);
+		width += parseInt(computedStyle.borderLeftWidth);
+		width += parseInt(computedStyle.borderRightWidth);
+		return width;
+	}
+});

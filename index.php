@@ -26,6 +26,7 @@
 	<script src="JS/settings.js" defer></script>
 	<script src="JS/users.js" defer></script>
 	<script src="JS/popupWindow.js" defer></script>
+	<script src="JS/smoothScroll.js" defer></script>
 </head>
 
 <body>

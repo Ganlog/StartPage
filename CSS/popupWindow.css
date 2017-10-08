@@ -11,8 +11,7 @@
 	margin: auto;
 	background: #FFF;
 	border-radius: 4px;
-	overflow-y: auto;
-  overflow-x: hidden;
+	overflow: hidden;
 	text-align: center;
 	padding: 40px 20px 20px;
 }
