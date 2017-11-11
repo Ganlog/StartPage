@@ -75,6 +75,16 @@ display = {
 				}
 			}
 		},
+		windowChangeListener: (function(){
+			var actWidth = 0;
+			setInterval(function(){
+				if(document.getElementById("messages"))
+					if(actWidth != document.getElementById("messages").clientWidth){
+						display.arrange();
+						actWidth = document.getElementById("messages").clientWidth;
+					}
+			}, 500);
+		})(),
 		init: function(){
 				var messagesDiv = document.createElement("div");
 				messagesDiv.id = "messages";
@@ -95,7 +105,7 @@ display = {
 					"margin: auto;"+
 					"left: 0;"+
 					"right: 0;"+
-					"width: 500px;"+
+					"width: 50%;"+
 					"height: 0;"+
 					"overflow: hidden;"+
 					"border-radius: 0 0 20px 20px;"+
@@ -109,7 +119,6 @@ display = {
 					"left: 0;"+
 					"right: 0;"+
 					"top: -30px;"+
-					"width: 90%;"+
 					"padding: 0 5%;"+
 					"cursor: pointer;"+
 					"background-color: #FFF;"+

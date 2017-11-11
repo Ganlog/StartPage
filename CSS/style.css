@@ -2,7 +2,15 @@
 	cursor: initial;
 }
 body{
-	background-image: url('../images/bg.jpg');
+	overflow: hidden;
+}
+#background{
+	position: fixed;
+	width: 100%;
+	bottom: 0;
+	left: 0;
+	background-repeat: no-repeat;
+	background-position: center center;
 	background-size: cover;
 	background-attachment: fixed;
 	overflow: hidden;
@@ -73,6 +81,9 @@ p{
 	right: 10px;
 	top: 0;
 	z-index: 6;
+	border-radius: 5px;
+	width: 35px;
+	height: 30px;
 }
 #settings img, .detailedSettings, #settingsSwitch{
 	transition-duration: .5s;
@@ -109,8 +120,9 @@ p{
 	right: 0;
 	display: flex;
 	align-items: center;
-	height: 60%;
-	top: 20%;
+	height: calc(100% - 100px);
+	top: 50px;
+	margin-bottom: 50px;
 }
 #mainFolders{
 	overflow: hidden;
@@ -142,4 +154,14 @@ p{
 	height: 80px;
 	cursor: pointer;
 	display: none;
+}
+
+
+@media (pointer:coarse){
+	body{
+		overflow: auto;
+	}
+	#mainFolders{
+		overflow: auto;
+	}
 }

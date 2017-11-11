@@ -3,6 +3,7 @@
 <head>
 	<base target="_parent" /> <!-- if this page is inside iframe this line allows to redirect page by <a href=''> -->
 	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Strona główna</title>
 	<link rel="shortcut icon" href="images/favicon.ico">
 	<link rel="stylesheet" type="text/css" href="CSS/style.css">
@@ -10,6 +11,11 @@
 	<script>
 		window.onload = function(){
 			users.getCurrentUser();
+
+			setInterval(function(){
+				if(parseInt(document.getElementById("background").style.height) != window.screen.height);
+					document.getElementById("background").style.height = window.screen.height;
+			});
 		}
 
 		// reload page if it is loaded using the back/forward button
@@ -30,6 +36,7 @@
 </head>
 
 <body>
+	<div id="background"></div>
 	<div id="settings">
 		<div class="detailedSettings">
 			<img id="sett_account" title="Manage your account" src="images/user.png" draggable="false">

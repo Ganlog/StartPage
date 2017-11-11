@@ -119,13 +119,13 @@ settings = {
 	})(),
 	documentClickListener: (function(){
 		document.addEventListener("click", function(e){
-			if((icons.edit.enabled) && ((e.target == document.body) || (e.target.id == "iconContainer")))
+			if((icons.edit.enabled) && ((e.target.id == "background") || (e.target.id == "iconContainer")))
 				icons.edit.disable();
 
-			if((folders.edit.enabled) && ((e.target == document.body) || (e.target.id == "iconContainer")))
+			if((folders.edit.enabled) && ((e.target.id == "background") || (e.target.id == "iconContainer")))
 				folders.edit.disable();
 
-			if((settings.visible) && ((e.target == document.body) || (e.target.id == "iconContainer")))
+			if((settings.visible) && ((e.target.id == "background") || (e.target.id == "iconContainer")))
 				settings.hide();
 		});
 	})(),

@@ -35,14 +35,14 @@ users = {
     background: function(){
       ajax.onload = function(){
         if(ajax.responseData)
-          document.body.style.backgroundImage = "url('"+ajax.responseData+"')";
+          document.getElementById("background").style.backgroundImage = "url('"+ajax.responseData+"')";
       }
       ajax.GET("loadBG");
     },
 
     defaultBackground: function(){
       ajax.onload = function(){
-        document.body.style.backgroundImage = "url('images/bg.jpg')";
+        document.getElementById("background").style.backgroundImage = "url('images/bg.jpg')";
       }
       ajax.POST('restoreDefaultBG');
     },
@@ -52,7 +52,7 @@ users = {
     bgFILE: function(file){
 			ajax.onload = function(){
 				if(ajax.responseData)
-					document.body.style.backgroundImage = "url('"+ajax.responseData+"')";
+					document.getElementById("background").style.backgroundImage = "url('"+ajax.responseData+"')";
 			}
 			var data = new FormData();
 				data.append("image", file);
@@ -61,7 +61,7 @@ users = {
 		bgURL: function(URL){
 			ajax.onload = function(){
 				if(ajax.responseData)
-					document.body.style.backgroundImage = "url('"+ajax.responseData+"')";
+					document.getElementById("background").style.backgroundImage = "url('"+ajax.responseData+"')";
 			}
 			var data = new FormData();
 				data.append("URL", URL);
@@ -73,7 +73,7 @@ users = {
     localStorage.removeItem("currentUser");
     localStorage.removeItem("lastActiveFolder");
 
-    document.body.style.backgroundImage = "url('images/bg.jpg')";
+    document.getElementById("background").style.backgroundImage = "url('images/bg.jpg')";
     document.getElementById("mainFolders").innerHTML = '';
     folders.edit.disable();
     icons.clear();
@@ -134,7 +134,7 @@ users = {
   logOut: function(){
     ajax.onload = function(){
       popupWindow.turnON("log-in");
-      document.body.style.backgroundImage = "url('images/bg.jpg')";
+      document.getElementById("background").style.backgroundImage = "url('images/bg.jpg')";
     }
     ajax.POST("log-out");
   }
