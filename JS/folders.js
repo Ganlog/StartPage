@@ -120,12 +120,14 @@ folders = {
 			if(!this.enabled){
 				this.enabled = true;
 				tools.changeCSS(".folder","background-position","-60px");
+				tools.changeCSS(".folder","filter","brightness(150%)");
 			}
 		},
 		disable: function(){
 			if(this.enabled){
 				this.enabled = false;
 				tools.changeCSS(".folder","background-position","0px");
+				tools.changeCSS(".folder","filter","brightness(100%)");
 			}
 		},
 	},

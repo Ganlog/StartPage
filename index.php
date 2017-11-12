@@ -38,21 +38,21 @@
 <body>
 	<div id="background"></div>
 	<div id="settings">
-		<div class="detailedSettings">
-			<img id="sett_account" title="Manage your account" src="images/user.png" draggable="false">
+		<div class="settingsGroup">
+			<div class="setting" id="sett_account" title="Manage your account" draggable="false"></div>
 		</div>
-		<div class="detailedSettings">
-			<img id="sett_editFolders" title="Enable folders edit" src="images/editFolders.png" draggable="false">
+		<div class="settingsGroup">
+			<div class="setting" id="sett_editFolders" title="Enable folders edit" draggable="false"></div>
 		</div>
-		<div class="detailedSettings">
-			<img id="sett_editIcons" title="Enable icons edit" src="images/editIcons.png" draggable="false">
+		<div class="settingsGroup">
+			<div class="setting" id="sett_editIcons" title="Enable icons edit" draggable="false"></div>
 		</div>
-		<div class="detailedSettings">
-			<img id="sett_plus" src="images/plusi.png" title="Increase icons size" draggable="false">
-			<img id="sett_minus" src="images/minusi.png" title="Reduce icons size" draggable="false">
-			<img src="images/plusminus.png" title="Change icons size" class="detailedSettingsSwitch" draggable="false">
+		<div class="settingsGroup">
+			<div class="setting" id="sett_plus" title="Increase icons size" draggable="false"></div>
+			<div class="setting" id="sett_minus" title="Reduce icons size" draggable="false"></div>
+			<div class="setting groupSwitch" id="sett_plusminus" title="Change icons size" draggable="false"></div>
 		</div>
-		<img src="images/menu.png" id="settingsSwitch" draggable="false">
+		<div class="setting" id="settingsSwitch" draggable="false"></div>
 	</div>
 
 	<div id="folders">

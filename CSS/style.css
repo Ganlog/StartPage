@@ -78,41 +78,61 @@ p{
 }
 #settings{
 	position: fixed;
-	right: 10px;
-	top: 0;
+	right: 5px;
+	top: 3px;
 	z-index: 6;
-	border-radius: 5px;
-	width: 35px;
-	height: 30px;
 }
-#settings img, .detailedSettings, #settingsSwitch{
+.settingsGroup, #settingsSwitch, .setting{
 	transition-duration: .5s;
 	position: absolute;
 	top: 0;
 	right: 0;
-	width: 35px;
+	width: 40px;
 	height: 30px;
+	border-radius: 5px;
 }
-.detailedSettings{
-	width: 45px;
+.settingsGroup{
+	width: 50px;
 	height: 40px;
 }
-.detailedSettings, #settingsSwitch{
+.settingsGroup, #settingsSwitch{
 	margin: 2px 0;
-	border-radius: 5px;
 	overflow: hidden;
 }
-#settings img{
+.setting{
+	background-image: url('../images/settingsIcons.png');
 	cursor: pointer;
-	background: #000;
+	background-color: #FFF;
 	padding: 5px;
 }
+#settings #settingsSwitch{
+	background-position: 0 0;
+}
+#settings #sett_account{
+	background-position: -50px 0;
+}
+#settings #sett_plusminus{
+	background-position: -100px 0;
+}
+#settings #sett_plus{
+	background-position: -150px 0;
+}
+#settings #sett_minus{
+	background-position: -200px 0;
+}
+#settings #sett_editIcons{
+	background-position: 0 -40px;
+}
+#settings #sett_editFolders{
+	background-position: -50px -40px;
+}
+
 #folders{
 	z-index: 5;
 	width: 60px;
 	text-align: center;
-	font-size: 9px;
-	line-height: 10px;
+	font-size: 11px;
+	line-height: 9px;
 	color: #FFF;
 	text-shadow: rgba(0, 0, 0, 1) 0px 0px 5px;
 	transition-duration: .5s;
@@ -130,16 +150,18 @@ p{
 	max-height: 100%;
 }
 .folder{
-	background-image: url('../images/folder.png');
+	background-image: url(../images/folder.png);
 	background-repeat: no-repeat;
-	padding-top: 25px;
+	padding-top: 40px;
 	background-size: 120px;
 	background-position: 0px;
 	height: 20px;
 	width: 100%;
+	background-color: #636363;
 	overflow: hidden;
 	cursor: pointer;
-	margin: 0 auto 10px;
+	margin: 0 auto;
+	clip-path: polygon(40% 26%, 41% 27%, 42% 29%, 42% 32%, 43% 33%, 45% 34%, 92% 34%, 94% 35%, 94% 38%, 97% 38%, 99% 40%, 97% 95%, 96% 98%, 95% 99%, 7% 99%, 3% 98%, 3% 95%, 1% 41%, 3% 38%, 6% 38%, 6% 36%, 7% 34%, 9% 33%, 10% 29%, 11% 27%, 14% 26%);
 }
 #folderPlus{
 	width: 100%;
@@ -162,6 +184,9 @@ p{
 		overflow: auto;
 	}
 	#mainFolders{
+		overflow: auto;
+	}
+	body #window{
 		overflow: auto;
 	}
 }

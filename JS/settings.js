@@ -40,7 +40,7 @@ settings = {
 		var position = 0;
 		for(i=settingsList.length-1; i>=0; i--){
 			settingsList[i].style.right = position;
-			position += settingsList[i].outerWidth;
+			position += settingsList[i].outerWidth+5;
 		}
 		settings.style.width = position;
 	},
@@ -55,6 +55,10 @@ settings = {
 		}
 		this.visibleDetailed = null;
 	},
+	changeColor: function(colorHex){
+		tools.changeCSS(".folder","background-color",colorHex);
+		tools.changeCSS(".setting","background-color",colorHex);
+	},
 	settingsClickListener: (function(){
 		document.getElementById("settings").addEventListener('click', function(e){
 			if(localStorage["currentUser"] == null){
@@ -67,7 +71,7 @@ settings = {
 				settings.toggle();
 
 			// expand detailed settings if representative settings button clicked
-			if(e.target.classList.contains("detailedSettingsSwitch"))
+			if(e.target.classList.contains("groupSwitch"))
 				settings.toggleDetailed(e.target.parentNode);
 
 			// actions for every button in settings list
