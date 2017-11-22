@@ -55,10 +55,6 @@ settings = {
 		}
 		this.visibleDetailed = null;
 	},
-	changeColor: function(colorHex){
-		tools.changeCSS(".folder","background-color",colorHex);
-		tools.changeCSS(".setting","background-color",colorHex);
-	},
 	settingsClickListener: (function(){
 		document.getElementById("settings").addEventListener('click', function(e){
 			if(localStorage["currentUser"] == null){

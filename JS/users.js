@@ -67,6 +67,14 @@ users = {
 				data.append("URL", URL);
 			ajax.POST("saveBgURL", data);
 		},
+    foldersColor: function(color){
+      ajax.onload = function(){
+    		tools.changeCSS(".folder","background-color", color);
+      }
+      var data = new FormData();
+        data.append("foldersColor", color);
+      ajax.POST("saveFoldersColor", data);
+    }
   },
 
   removeUserContent: function(){

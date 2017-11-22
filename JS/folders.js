@@ -19,14 +19,21 @@ folders = {
 	},
 	load: function(){
 		ajax.onload = function(){
+			let i = 0;
 			if(ajax.responseData){
 				// remove information about previous folders
 					document.getElementById("mainFolders").innerHTML = '';
 					folders.folderPlus.show();
 
-				// show folders
-					var ajaxResp = ajax.responseData;
-					for(i = 0; i < ajaxResp.length; i+=2)
+					const ajaxResp = ajax.responseData;
+
+					if(ajaxResp[i] == "color"){
+						const color = ajaxResp[i+1];
+						tools.changeCSS(".folder","background-color", color);	
+						document.getElementById("w_folderColor").value = color;
+						i+=2;
+					}
+					for(i; i < ajaxResp.length; i+=2)
 						folders.add(ajaxResp[i], ajaxResp[i+1]);
 			}
 		}

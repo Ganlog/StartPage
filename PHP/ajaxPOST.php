@@ -704,6 +704,21 @@
 
 
 
+	if(isset($_REQUEST['saveFoldersColor'])){
+		$color = adaptToQuery($_POST["foldersColor"]);
+		$db->query("UPDATE settings SET foldersColor = '".$color."' WHERE userID = ".$userID);
+		$response->log = "Folders color saved";
+		respond();
+	}
+
+
+
+
+
+
+
+
+
 	function adaptToQuery($string){
 		global $db;
 		return mysqli_real_escape_string($db, $string);

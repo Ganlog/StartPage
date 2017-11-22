@@ -18,7 +18,7 @@ popupWindow = {
 			case "addIcon": {
 				document.getElementById("w_Header").innerHTML = "Add icon:";
 				document.getElementById("w_AddIconAddress").focus();
-				document.getElementById("w_AddIconAddress").addEventListener('keyup', function(e){ if(e.keyCode == 13) icons.save.icon(Number(new Date()), this.value); });
+				document.getElementById("w_AddIconAddress").addEventListener('keyup', function(e){ if(e.keyCode == 13) document.getElementById("w_AddIconAddressOK").click(); });
 				document.getElementById("w_AddIconAddressOK").addEventListener('click', function(e){ icons.save.icon(Number(new Date()), document.getElementById("w_AddIconAddress").value); });
 			}
 			break;
@@ -27,7 +27,7 @@ popupWindow = {
 				document.getElementById("w_Header").innerHTML = "Icon edit:";
 				document.getElementById("w_ChangeIconAddress").value = icons.list[iconID].img.alt;
 				document.getElementById("w_UploadFILE").addEventListener('change', function(e){ icons.save.imageFILE(iconID, e.target.files[0]); });
-				document.getElementById("w_UploadURL").addEventListener('keyup', function(e){ if(e.keyCode == 13) icons.save.imageURL(iconID, e.target.value); });
+				document.getElementById("w_UploadURL").addEventListener('keyup', function(e){ if(e.keyCode == 13) document.getElementById("w_UploadURLOK").click(); });
 				document.getElementById("w_UploadURLOK").addEventListener('click', function(e){ icons.save.imageURL(iconID, document.getElementById("w_UploadURL").value); });
 				document.getElementById("window").addEventListener('dragenter', function(e){ e.preventDefault(); document.getElementById("w_DropUpload").style.display = "block"; });
 				document.getElementById("w_DropUpload").addEventListener('drop', function(e){
@@ -46,7 +46,7 @@ popupWindow = {
 			case "uploadImage": {
 				document.getElementById("w_Header").innerHTML = "Upload image:";
 				document.getElementById("w_UploadFILE").addEventListener('change', function(e){ icons.save.imageFILE(iconID, e.target.files[0]); });
-				document.getElementById("w_UploadURL").addEventListener('keyup', function(e){ if(e.keyCode == 13) icons.save.imageURL(iconID, e.target.value); });
+				document.getElementById("w_UploadURL").addEventListener('keyup', function(e){ if(e.keyCode == 13) document.getElementById("w_UploadURLOK").click(); });
 				document.getElementById("w_UploadURLOK").addEventListener('click', function(e){ icons.save.imageURL(iconID, document.getElementById("w_UploadURL").value); });
 				document.getElementById("window").addEventListener('dragenter', function(e){ e.preventDefault(); document.getElementById("w_DropUpload").style.display = "block"; });
 				document.getElementById("w_DropUpload").addEventListener('drop', function(e){
@@ -61,7 +61,7 @@ popupWindow = {
 			case "editBg": {
 				document.getElementById("w_Header").innerHTML = "Background edit:";
 				document.getElementById("w_UploadFILE").addEventListener('change', function(e){ users.save.bgFILE(e.target.files[0]); });
-				document.getElementById("w_UploadURL").addEventListener('keyup', function(e){ if(e.keyCode == 13) users.save.bgURL(e.target.value); });
+				document.getElementById("w_UploadURL").addEventListener('keyup', function(e){ if(e.keyCode == 13) document.getElementById("w_UploadURLOK").click(); });
 				document.getElementById("w_UploadURLOK").addEventListener('click', function(e){ users.save.bgURL(document.getElementById("w_UploadURL").value); });
 				document.getElementById("window").addEventListener('dragenter', function(e){ e.preventDefault(); document.getElementById("w_DropUpload").style.display = "block"; });
 				document.getElementById("w_DropUpload").addEventListener('drop', function(e){
@@ -77,7 +77,7 @@ popupWindow = {
 			case "addFolder": {
 				document.getElementById("w_Header").innerHTML = "Add folder:";
 				document.getElementById("w_AddFolderName").focus();
-				document.getElementById("w_AddFolderName").addEventListener('keyup', function(e){ if(e.keyCode == 13) folders.save.newFolder(this.value); });
+				document.getElementById("w_AddFolderName").addEventListener('keyup', function(e){ if(e.keyCode == 13) document.getElementById("w_AddFolderNameOK").click(); });
 				document.getElementById("w_AddFolderNameOK").addEventListener('click', function(e){ folders.save.newFolder(document.getElementById("w_AddFolderName").value); });
 			}
 			break;
@@ -86,7 +86,7 @@ popupWindow = {
 				document.getElementById("w_Header").innerHTML = "Folder edit:";
 				document.getElementById("w_ChangeFolderName").value = slectedFolder.innerHTML;
 				document.getElementById("w_ChangeFolderName").focus();
-				document.getElementById("w_ChangeFolderName").addEventListener('keyup', function(e){ if(e.keyCode == 13) folders.renameFolder(slectedFolder, this.value); });
+				document.getElementById("w_ChangeFolderName").addEventListener('keyup', function(e){ if(e.keyCode == 13) document.getElementById("w_ChangeFolderNameOK").click(); });
 				document.getElementById("w_ChangeFolderNameOK").addEventListener('click', function(e){ folders.renameFolder(slectedFolder, document.getElementById("w_ChangeFolderName").value); });
 				document.getElementById("w_DeleteFolderButton").addEventListener('click', function(){ folders.selected = slectedFolder; popupWindow.turnON("definitelyDeleteFolder"); });
 			}
@@ -106,6 +106,7 @@ popupWindow = {
 				document.getElementById("w_Header").innerHTML = "Manage account:";
 				document.getElementById("w_Username").innerHTML = localStorage["currentUser"].split(",")[1]; // get username
 				document.getElementById("w_ChangeBG").addEventListener('click', function(){ popupWindow.turnON("editBg"); });
+				document.getElementById("w_folderColor").addEventListener('change', function(e){ users.save.foldersColor(this.value); });
 				document.getElementById("w_LogOutButton").addEventListener('click', function(){ users.logOut(); });
 			}
 			break;

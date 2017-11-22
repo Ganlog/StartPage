@@ -12,15 +12,18 @@
 		window.onload = function(){
 			users.getCurrentUser();
 
-			setInterval(function(){
-				if(parseInt(document.getElementById("background").style.height) != window.screen.height);
-					document.getElementById("background").style.height = window.screen.height;
-			});
-		}
+			// reload page if it is loaded using the back/forward button
+			if(window.performance && window.performance.navigation.type === 2)
+				window.location.reload();
 
-		// reload page if it is loaded using the back/forward button
-		if(window.performance && window.performance.navigation.type === 2)
-			window.location.reload();
+
+			if(tools.isMobileBrowser()){
+				setInterval(function(){
+					if(parseInt(document.getElementById("background").style.height) != window.screen.height);
+						document.getElementById("background").style.height = window.screen.height;
+				},100);
+			}
+		}
 	</script>
 
 	<script src="JS/ajax.js" defer></script>
@@ -113,7 +116,9 @@
 
 		<div id="w_Account">
 			<p id="w_Username"></p>
-			<button id="w_ChangeBG">Change Background</button></br></br>
+			<button id="w_ChangeBG">Change Background</button>
+			<p>Set custom folders color:</p>
+			<input id="w_folderColor" type="color" value="#636363"></br></br>
 			<button id="w_LogOutButton">Log out</button>
 		</div>
 

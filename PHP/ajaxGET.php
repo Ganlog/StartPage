@@ -51,7 +51,7 @@
 		CREATE TABLE IF NOT EXISTS icons (
 			ID bigint PRIMARY KEY,
 			URL varchar(500) NOT NULL,
-			imageExt varchar(20) NOT NULL
+			imageExt varchar(20) DEFAULT NULL
 		) DEFAULT CHARSET=utf8;
 	");
 	$db->query("
@@ -65,7 +65,8 @@
 		CREATE TABLE IF NOT EXISTS settings (
 			userID bigint NOT NULL,
 			iconSize int NOT NULL,
-			bgTimestamp bigint NOT NULL
+			bgTimestamp bigint DEFAULT NULL,
+			foldersColor varchar(7) DEFAULT NULL
 		) DEFAULT CHARSET=utf8;
 	");
 	$db->query("
@@ -227,9 +228,15 @@
 
 	if(isset($_REQUEST['loadFolders'])){
 		$foldersList = array();
-		$results = $db->query("SELECT `folderID`, `name` FROM folders WHERE userID = ".$userID." ORDER BY orderID ASC");
+		$results = $db->query("SELECT folderID, name FROM folders WHERE userID = ".$userID." ORDER BY orderID ASC");
 
 		$results->fetch_object(); // ignore first folder (BIN)
+
+		if($color = $db->query("SELECT foldersColor FROM settings WHERE userID = ".$userID)){
+			$color = $color->fetch_object()->foldersColor;
+			array_push($foldersList, "color");
+			array_push($foldersList, $color);
+		}
 		while($row = $results->fetch_object()){
 			array_push($foldersList, $row->folderID);
 			array_push($foldersList, $row->name);
