@@ -37,7 +37,7 @@ icons = {
 		address: function(ID, URL){
 			ajax.onload = function(){
 				icons.list[ID].img.alt = URL;
-				if((URL.substring(0,4) != "http") && (URL.substring(0,11) != "javascript:"))
+				if(!URL.startsWith("http") && !URL.startsWith("javascript:"))
 					icons.list[ID].a.href = "http://"+URL;
 				else  icons.list[ID].a.href = URL;
 			}
@@ -257,7 +257,7 @@ icons = {
 				// creating 'a' element
 						var a = document.createElement("a");
 							a.setAttribute("class", "URL");
-							if((URL.substring(0,4) != "http") && (URL.substring(0,11) != "javascript:"))
+							if(!URL.startsWith("http") && !URL.startsWith("javascript:"))
 								a.href = "http://"+URL;
 							else  a.href = URL;
 							div.appendChild(a);
@@ -346,7 +346,7 @@ icons = {
 
 /* drag and drop */
 document.getElementById("iconContainer").addEventListener('dragstart', function(e){
-	if(e.target.className.indexOf("URL") != -1){ 	// if dragged element is of class "URL"
+	if(e.target.classList.contains("URL")){
 
 		var selected = icons.list[e.target.parentNode.id];
 		icons.selected = selected.id;
@@ -369,7 +369,7 @@ document.getElementById("iconContainer").addEventListener('dragenter', function(
 		// if 'selected' hovered object of class 'icon' - ok
 		// if something else or itself end function
 				var hovered = null;
-				if(e.target.className.indexOf("URL") != -1)
+				if(e.target.classList.contains("URL"))
 					hovered = icons.list[e.target.parentNode.id].id;
 				if(hovered == null) return;
 				if(icons.order.indexOf(hovered) == icons.order.indexOf(icons.selected)) return;
